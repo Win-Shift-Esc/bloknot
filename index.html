@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Блокнот</title>
+<meta name="description" content="Домашка, привычки, таймер работы, цели, книги и заметки">
+<meta name="theme-color" content="#fbfaf6">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Блокнот">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&family=Unbounded:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="root"><p class="loading">Загружаю…</p></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<datalist id="subjects">
+  <option value="Алгебра"></option><option value="Геометрия"></option><option value="Физика"></option>
+  <option value="Русский язык"></option><option value="Литература"></option><option value="Английский"></option>
+  <option value="История"></option><option value="Обществознание"></option><option value="Химия"></option>
+  <option value="Биология"></option><option value="Информатика"></option><option value="География"></option>
+  <option value="Физкультура"></option><option value="ОБЖ"></option><option value="Вероятность и статистика"></option>
+</datalist>
+<datalist id="topics">
+  <option value="Математический аппарат"></option><option value="Олимпиадные методы"></option><option value="Экспериментальная физика"></option>
+  <option value="Кинематика"></option><option value="Динамика"></option><option value="Законы сохранения"></option>
+  <option value="Вращательное движение"></option><option value="Статика"></option><option value="Гидростатика и гидродинамика"></option>
+  <option value="Молекулярная физика"></option><option value="Термодинамика"></option><option value="Колебания и волны"></option>
+  <option value="Электростатика"></option><option value="Постоянный ток"></option><option value="Магнитное поле"></option>
+  <option value="Электромагнитная индукция"></option><option value="Оптика"></option><option value="СТО"></option>
+  <option value="Современная физика"></option>
+</datalist>
+<script>
+  // Ловим ошибку в config.js, чтобы показать понятное сообщение, а не тихо работать без синхронизации
+  window.__cfgError = null;
+  window.addEventListener("error", function (e) {
+    if (e && e.filename && /config\.js/.test(e.filename)) window.__cfgError = e.message || "ошибка в файле";
+  }, true);
+</script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
