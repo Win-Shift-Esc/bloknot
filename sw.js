@@ -1,7 +1,7 @@
 // Блокнот: офлайн-режим и установка на телефон.
 // Если заменишь файлы на новую версию, увеличь номер версии, чтобы телефон точно забыл старый кэш.
-const CACHE = "bloknot-v2";
-const SHELL = ["./", "./index.html", "./styles.css", "./app.js", "./config.js", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png"];
+const CACHE = "bloknot-v3";
+const SHELL = ["./", "./index.html", "./styles.css", "./app.js", "./config.js", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -41,4 +41,14 @@ self.addEventListener("notificationclick", e => {
     for (const c of list) { if ("focus" in c) return c.focus(); }
     return self.clients.openWindow ? self.clients.openWindow("./") : null;
   }));
+});
+// Напоминания с сервера рассылки (Web Push).
+self.addEventListener("push", e => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch (err) { d = { body: e.data ? e.data.text() : "" }; }
+  const title = d.title || "Блокнот";
+  e.waitUntil(Promise.all([
+    self.registration.showNotification(title, { body: d.body || "", icon: "icon-192.png", badge: "icon-192.png", tag: d.tag || "bloknot", data: { url: d.url || "./" } }),
+    (typeof d.badge === "number" && self.navigator && self.navigator.setAppBadge) ? self.navigator.setAppBadge(d.badge).catch(() => {}) : Promise.resolve()
+  ]));
 });
