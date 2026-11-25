@@ -3198,7 +3198,7 @@ pre.report {
   padding: 0 4px 4px;
 }
 .wg {
-  --px: 1.1px;
+  --px: 1.6px;
   display: grid;
   grid-template-columns: 42px repeat(7, minmax(104px, 1fr));
   gap: 6px;
@@ -3262,7 +3262,12 @@ pre.report {
   min-height: 8px;
   box-sizing: border-box;
   overflow: hidden;
-  padding: 2px 5px;
+  margin-top: 1px;
+  max-height: calc(100% - 2px);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: 2px 6px;
   border-radius: 7px;
   border-left: 3px solid var(--c);
   background: color-mix(in srgb, var(--c) 24%, var(--card));
@@ -3414,5 +3419,160 @@ pre.report {
   .wg-now,
   .wg-school {
     display: none;
+  }
+}
+
+/* Сетка недели по 15 минут: дела не налезают друг на друга */
+.wg-b .wg-t,
+.wg-b .wg-n {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.wg-b .wg-n {
+  font-size: 12px;
+  line-height: 18px;
+}
+.wg-b .wg-t {
+  font-size: 10.5px;
+  line-height: 14px;
+}
+.wg-col {
+  background-image:
+    repeating-linear-gradient(to bottom, var(--line) 0 1px, transparent 1px calc(60 * var(--px))),
+    repeating-linear-gradient(to bottom, color-mix(in srgb, var(--line) 45%, transparent) 0 1px, transparent 1px calc(15 * var(--px)));
+}
+.wg-dot {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--c);
+}
+/* Программа и урок внутри дела */
+.bx {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.bx b {
+  color: var(--ink);
+  font-weight: 600;
+}
+.bx-btn {
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  border-radius: 9px;
+  padding: 5px 9px;
+  font: 500 13px var(--f-body);
+  cursor: pointer;
+}
+.kit {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.kit-i {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  text-align: left;
+  border: 0;
+  border-radius: 9px;
+  padding: 7px 8px;
+  background: var(--card2);
+  color: var(--ink);
+  font: 400 14px var(--f-body);
+  cursor: pointer;
+}
+.kit-i .box {
+  flex: 0 0 18px;
+  height: 18px;
+  border-radius: 5px;
+  border: 1.5px solid var(--line);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.kit-i .box svg {
+  width: 13px;
+  height: 13px;
+  opacity: 0;
+}
+.kit-i.on .box {
+  background: var(--good);
+  border-color: var(--good);
+}
+.kit-i.on .box svg {
+  opacity: 1;
+  stroke: #fff;
+}
+.kit-i.on span:last-child {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+.sc-row .sc-tools select[data-input="sb-link"] {
+  max-width: 260px;
+}
+/* Очередь уроков */
+.qlist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.qlist li {
+  display: grid;
+  grid-template-columns: 92px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+.qlist li:last-child {
+  border-bottom: 0;
+}
+.qlist .qd {
+  font-size: 12px;
+  color: var(--muted);
+}
+.qlist .qt small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
+.qlist li.done .qt {
+  color: var(--muted);
+}
+.qlist .qb {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.t-v.small-v {
+  font-size: 18px;
+}
+@media (max-width: 699px) {
+  .qlist li {
+    grid-template-columns: 70px 1fr;
+  }
+  .qlist .qb {
+    grid-column: 2;
+    justify-content: flex-start;
+  }
+}
+@media print {
+  .wg {
+    --px: 0.5px;
   }
 }
