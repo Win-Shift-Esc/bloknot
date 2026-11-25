@@ -2824,7 +2824,7 @@ body.focus-on {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 34px;
   grid-template-areas:
-    "time dur dur x"
+    "time dur pin x"
     "title title title title"
     "cat cat mode mode";
   gap: 6px;
@@ -2874,8 +2874,8 @@ body.focus-on {
 }
 @media (min-width: 700px) {
   .sc-row {
-    grid-template-columns: 84px 110px 1fr 180px 140px 34px;
-    grid-template-areas: "time dur title cat mode x";
+    grid-template-columns: 84px 110px 1fr 180px 140px 104px 34px;
+    grid-template-areas: "time dur title cat mode pin x";
   }
 }
 
@@ -3054,4 +3054,69 @@ pre.report {
 }
 .subnav {
   border-color: #232327;
+}
+
+/* Встреча: закреплённое время в редакторе расписания */
+.sc-row .pin-t {
+  grid-area: pin;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 0;
+  padding: 7px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  font: 500 12.5px var(--f-body);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.sc-row .pin-t .i {
+  width: 15px;
+  height: 15px;
+}
+.sc-row .pin-t.on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+/* Дни, изменённые отдельно */
+.day-seg button.own {
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+.sched-wk {
+  margin-bottom: 10px;
+}
+.own-note {
+  margin-bottom: 8px;
+}
+.own-note .link {
+  font-size: inherit;
+}
+/* Проекты */
+.card.proj {
+  border-left: 3px solid var(--c, var(--accent));
+}
+.card.proj .pbar {
+  margin: 4px 0 10px;
+}
+.proj-steps .habit .hname {
+  white-space: normal;
+}
+.pj-l {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.pj-l input,
+.pj-l textarea {
+  color: var(--ink);
+  font-size: 15px;
+}
+.sc-times select {
+  min-width: 180px;
 }
