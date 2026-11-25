@@ -2,12 +2,12 @@
   "use strict";
   // Темы таймера. t — активные темы (меняется на месте при смене настроек), ALLCATS — все, включая архив.
   const DEFAULT_CATS = [
-      { id: "phys", name: "Олимпиадная физика", short: "Физика", color: "#ff6a3d", goal: 8 },
+      { id: "phys", name: "Олимпиадная физика", short: "Физика", color: "#ff6a3d", goal: 6 },
       { id: "tyf", name: "ТЮФ", short: "ТЮФ", color: "#9b7bff", goal: 0 },
       { id: "hw", name: "Домашка и школа", short: "Школа", color: "#4f8dff", goal: 0 },
       { id: "philo", name: "Логика и философия", short: "Логика", color: "#2ec4a6", goal: 2.5 },
       { id: "ger", name: "Немецкий", short: "Немецкий", color: "#b7dd4a", goal: 2.5 },
-      { id: "eng", name: "Английский", short: "Английский", color: "#ff6fae", goal: 1.5 },
+      { id: "eng", name: "Английский", short: "Английский", color: "#ff6fae", goal: 1 },
       { id: "read", name: "Чтение", short: "Чтение", color: "#e3b341", goal: 3.5 },
       { id: "prog", name: "Программирование", short: "Код", color: "#6cc644", goal: 0, archived: !0 },
       { id: "other", name: "Другое", short: "Другое", color: "#8a8fa3", goal: 0 },
@@ -53,11 +53,11 @@
     ],
     l = (t) => i.find((a) => a.id === t) || i[3],
     PLAN_HABITS = [
-      { id: "hw", name: "Домашка", t: [1, 1, 1, 1, 0, 0, 1] },
-      { id: "kruzhok", name: "Урок «Кружка»", t: [1, 0, 1, 0, 0, 3, 3] },
+      { id: "hw", name: "Домашка", t: [1, 1, 1, 1, 1, 0, 1] },
+      { id: "kruzhok", name: "Урок «Кружка»", t: [1, 0, 1, 0, 0, 1, 3] },
       { id: "philo", name: "Логика и философия", t: [1, 0, 0, 0, 0, 1, 1] },
       { id: "ger", name: "Немецкий", t: [1, 1, 1, 1, 0, 1, 1] },
-      { id: "eng", name: "Английский", t: [0, 0, 0, 0, 0, 1, 1] },
+      { id: "eng", name: "Английский", t: [0, 0, 0, 0, 0, 0, 1] },
       { id: "read", name: "Чтение 30 мин", t: [1, 1, 1, 1, 1, 1, 1] },
       { id: "gym", name: "Зал", t: [0, 1, 0, 1, 0, 0, 0] },
       { id: "report", name: "Отчёт и взвешивание", t: [0, 0, 0, 0, 0, 0, 1] },
@@ -79,6 +79,81 @@
         SB(d + "c", "19:00", 60, "Кружок · 1 урок", "phys", "res"),
       ].concat(extra),
     DEFAULT_SCHED = {
+      d0: [
+        SB("moa", "17:00", 30, "Обед и отдых"),
+        SB("mob", "17:30", 90, "Домашка", "hw", "res"),
+        SB("moc", "19:00", 60, "Кружок · 1 урок", "phys", "res"),
+        SB("mod", "20:00", 15, "Перерыв"),
+        SB("moe", "20:15", 45, "Логика и философия", "philo"),
+        SB("mof", "21:00", 45, "Немецкий · порция", "ger", "res"),
+        SB("mog", "21:45", 15, "Свободно"),
+        SB("moh", "22:00", 30, "Чтение", "read"),
+        SB("moi", "22:30", 30, "Подготовка ко сну"),
+      ],
+      d1: [
+        SB("tua", "17:00", 30, "Обед и отдых"),
+        SB("tub", "17:30", 90, "Домашка", "hw", "res"),
+        SB("tud", "19:00", 180, "Зал · сборы, дорога, тренировка, домой"),
+        SB("tue", "22:00", 15, "Немецкий · карточки", "ger", "res"),
+        SB("tuf", "22:15", 30, "Чтение", "read"),
+        SB("tug", "22:45", 15, "Подготовка ко сну"),
+      ],
+      d2: [
+        SB("wea", "17:00", 30, "Обед и отдых"),
+        SB("web", "17:30", 90, "Домашка", "hw", "res"),
+        SB("wec", "19:00", 60, "Кружок · 1 урок", "phys", "res"),
+        SB("wed", "20:00", 15, "Перерыв"),
+        SB("wee", "20:15", 60, "Окно долгов и проектов", "debt"),
+        SB("wef", "21:15", 45, "Немецкий · порция", "ger", "res"),
+        SB("weh", "22:00", 30, "Чтение", "read"),
+        SB("wei", "22:30", 30, "Подготовка ко сну"),
+      ],
+      d3: [
+        SB("tha", "17:00", 30, "Обед и отдых"),
+        SB("thb", "17:30", 90, "Домашка", "hw", "res"),
+        SB("thd", "19:00", 180, "Зал · сборы, дорога, тренировка, домой"),
+        SB("the", "22:00", 15, "Немецкий · карточки", "ger", "res"),
+        SB("thf", "22:15", 30, "Чтение", "read"),
+        SB("thg", "22:45", 15, "Подготовка ко сну"),
+      ],
+      d4: [
+        SB("frx", "17:00", 180, "ТЮФ · опыты в школе, дома около 20:00"),
+        SB("fra", "20:00", 30, "Ужин и отдых"),
+        SB("frb", "20:30", 60, "Домашка на субботу", "hw", "res"),
+        SB("frg", "21:30", 30, "Свободно"),
+        SB("frh", "22:00", 30, "Чтение", "read"),
+        SB("fri", "22:30", 30, "Подготовка ко сну"),
+      ],
+      d5: [
+        SB("saa", "17:00", 30, "Обед и отдых"),
+        SB("sab", "17:30", 60, "Кружок · 1 урок", "phys", "res"),
+        SB("sac", "18:30", 15, "Перерыв"),
+        SB("saf", "18:45", 45, "Логика и философия", "philo"),
+        SB("sai", "19:30", 30, "Немецкий · разговор", "ger", "res"),
+        SB("saj", "20:00", 30, "Чтение", "read"),
+        SB("sal", "20:30", 240, "Игры и отдых · до 00:30"),
+      ],
+      d6: [
+        SB("sua", "10:00", 30, "Завтрак, взвешивание"),
+        SB("sub", "10:30", 60, "Кружок · урок 1", "phys", "res"),
+        SB("suq", "11:30", 15, "Перерыв"),
+        SB("suc", "11:45", 60, "Кружок · урок 2", "phys", "res"),
+        SB("sud", "12:45", 45, "Обед"),
+        SB("sue", "13:30", 60, "Кружок · урок 3", "phys", "res"),
+        SB("sum", "14:30", 30, "Отдых"),
+        SB("sug", "15:00", 60, "Английский · репетитор (онлайн)", "eng", "time", 1),
+        SB("sun", "16:00", 30, "Свободно · если репетитор задержит"),
+        SB("suf", "16:30", 60, "Логика и философия", "philo"),
+        SB("suh", "17:30", 15, "Немецкий · карточки", "ger", "res"),
+        SB("sui", "17:45", 15, "Отчёт для Claude", "other", "res"),
+        SB("suj", "18:00", 60, "Игры"),
+        SB("suo", "19:00", 60, "Свободно"),
+        SB("suk", "20:00", 60, "Домашка на понедельник", "hw", "res"),
+        SB("sup", "21:00", 60, "Свободно"),
+        SB("sul", "22:00", 30, "Чтение", "read"),
+      ],
+    },
+    PREV_SCHED_V5 = {
       d0: WD_EVENING("mo", [
         SB("mod", "20:00", 15, "Перерыв"),
         SB("moe", "20:15", 45, "Логика и философия", "philo"),
@@ -151,10 +226,80 @@
         SB("sul", "22:00", 30, "Чтение", "read"),
       ],
     },
-    DEFAULT_TIMES = { wake: ["07:00", "07:00", "07:00", "07:00", "07:00", "09:00", "10:00"], sleep: "23:00" },
+    // Очереди: длинные списки по порядку, которые сами раскладываются по делам расписания с этой очередью
+    DEFAULT_QUEUES = [
+      { id: "kruzhok", title: "Кружок — уроки по порядку", items: [
+        {"id": "k01", "t": "7.09 Производные и интегралы", "p": "Производные и интегралы", "th": true, "pr": true},
+        {"id": "k02", "t": "8.09 Ускорения точек", "p": "Ускорения точек", "th": true, "pr": true},
+        {"id": "k03", "t": "7.09 Вводный урок", "p": "", "th": true, "pr": false},
+        {"id": "k04", "t": "9.09 Движение в плоскости", "p": "Движение в плоскости", "th": false, "pr": false},
+        {"id": "k05", "t": "10.09 Анализ графиков", "p": "Анализ графиков", "th": false, "pr": false},
+        {"id": "k06", "t": "12.09 Баллистика", "p": "", "th": false, "pr": false},
+        {"id": "k07", "t": "14.09 Движение в плоскости (2)", "p": "Движение в плоскости 2", "th": false, "pr": false},
+        {"id": "k08", "t": "15.09 Дифференциальные уравнения в физических задачах", "p": "Дифференциальные уравнения в физических задачах", "th": false, "pr": false},
+        {"id": "k09", "t": "16.09 Кинематические связи", "p": "", "th": false, "pr": false},
+        {"id": "k10", "t": "20.09 Вязкое трение", "p": "Вязкое трение", "th": false, "pr": false},
+        {"id": "k11", "t": "21.09 Векторный анализ", "p": "Векторный анализ", "th": false, "pr": false},
+        {"id": "k12", "t": "22.09 Условия равновесия для модели АТТ", "p": "", "th": false, "pr": false},
+        {"id": "k13", "t": "23.09 Силы инерции", "p": "", "th": false, "pr": false},
+        {"id": "k14", "t": "28.09 Момент инерции", "p": "Момент инерции", "th": false, "pr": false},
+        {"id": "k15", "t": "29.09 Теорема Штейнера", "p": "Теорема Штейнера", "th": false, "pr": false},
+        {"id": "k16", "t": "30.09 Соударения", "p": "Соударения", "th": false, "pr": false},
+        {"id": "k17", "t": "1.10 Уравнения вращения", "p": "Уравнения вращения", "th": false, "pr": false},
+        {"id": "k18", "t": "4.10 Соударения (2)", "p": "Соударения 2", "th": false, "pr": false},
+        {"id": "k19", "t": "5.10 Вектор момента импульса", "p": "Вектор момента импульса", "th": false, "pr": false},
+        {"id": "k20", "t": "6.10 Кинематические связи", "p": "Кинематические связи", "th": false, "pr": false},
+        {"id": "k21", "t": "7.10 Дифференциальное уравнение гармонических колебаний", "p": "Дифференциальное уравнение гармонических колебаний", "th": false, "pr": false},
+        {"id": "k22", "t": "8.10 ЗСИ", "p": "ЗСИ", "th": false, "pr": false},
+        {"id": "k23", "t": "10.10 Метод виртуальных перемещений", "p": "", "th": false, "pr": false},
+        {"id": "k24", "t": "12.10 Расчёт периодов гармонических колебаний", "p": "Расчёт периодов гармонических колебаний", "th": false, "pr": false},
+        {"id": "k25", "t": "13.10 Горизонтальная сила Архимеда", "p": "Горизонтальная сила Архимеда", "th": false, "pr": false},
+        {"id": "k26", "t": "14.10 Уравнение Бернулли", "p": "Уравнение Бернулли", "th": false, "pr": false},
+        {"id": "k27", "t": "15.10 Сила Архимеда", "p": "Сила Архимеда", "th": false, "pr": false},
+        {"id": "k28", "t": "18.10 Гармонические колебания", "p": "", "th": false, "pr": false},
+        {"id": "k29", "t": "19.10 Распределение Больцмана", "p": "Распределение Больцмана", "th": false, "pr": false},
+        {"id": "k30", "t": "20.10 Газовые смеси", "p": "Газовые смеси", "th": false, "pr": false},
+        {"id": "k31", "t": "21.10 Степени свободы", "p": "Степени свободы", "th": false, "pr": false},
+        {"id": "k32", "t": "22.10 Смеси под поршнем", "p": "", "th": false, "pr": false},
+        {"id": "k33", "t": "24.10 Барометрическая формула", "p": "", "th": false, "pr": false},
+        {"id": "k34", "t": "26.10 Политропический процесс", "p": "Политропический процесс", "th": false, "pr": false},
+        {"id": "k35", "t": "27.10 Уравнения Майера", "p": "Уравнения Майера", "th": false, "pr": false},
+        {"id": "k36", "t": "28.10 Работа в термодинамике", "p": "Работа в термодинамике", "th": false, "pr": false},
+        {"id": "k37", "t": "29.10 Теплоёмкость газа", "p": "Теплоёмкость газа", "th": false, "pr": false},
+        {"id": "k38", "t": "1.11 Адиабатические процессы", "p": "Адиабатические процессы", "th": false, "pr": false},
+        {"id": "k39", "t": "2.11 Тепловые машины", "p": "Тепловые машины", "th": false, "pr": false},
+        {"id": "k40", "t": "3.11 Энтропийные циклы", "p": "Энтропийные циклы", "th": false, "pr": false},
+        {"id": "k41", "t": "4.11 Изменение энтропии", "p": "", "th": false, "pr": false},
+        {"id": "k42", "t": "5.11 Анализ энтропии", "p": "", "th": false, "pr": false},
+        {"id": "k43", "t": "7.11 Расчёт КПД циклов", "p": "", "th": false, "pr": false},
+        {"id": "k44", "t": "9.11 Неравновесные процессы", "p": "", "th": false, "pr": false},
+        {"id": "k45", "t": "10.11 Фазовые переходы", "p": "", "th": false, "pr": false},
+        {"id": "k46", "t": "11.11 Закон Лапласа", "p": "", "th": false, "pr": false},
+        {"id": "k47", "t": "12.11 Энтропия, фазы", "p": "", "th": false, "pr": false},
+        {"id": "k48", "t": "15.11 Поверхностное натяжение", "p": "", "th": false, "pr": false},
+        {"id": "k49", "t": "16.11 Силовая и энергетическая характеристики электростатического поля", "p": "", "th": false, "pr": false},
+        {"id": "k50", "t": "17.11 Теорема Гаусса", "p": "", "th": false, "pr": false},
+        {"id": "k51", "t": "18.11 Проводники в поле", "p": "", "th": false, "pr": false},
+        {"id": "k52", "t": "19.11 Потоки полей", "p": "", "th": false, "pr": false},
+        {"id": "k53", "t": "21.11 Задачи на диэлектрики во внешнем поле", "p": "", "th": false, "pr": false},
+        {"id": "k54", "t": "23.11 Теорема единственности", "p": "", "th": false, "pr": false},
+        {"id": "k55", "t": "24.11 Метод изображений", "p": "", "th": false, "pr": false},
+        {"id": "k56", "t": "25.11 Энергия поля", "p": "", "th": false, "pr": false},
+        {"id": "k57", "t": "26.11 Метод зеркальных зарядов", "p": "", "th": false, "pr": false},
+        {"id": "k58", "t": "29.11 Теорема взаимности", "p": "", "th": false, "pr": false},
+        {"id": "k59", "t": "30.11 Перекоммутация цепей", "p": "", "th": false, "pr": false}
+      ] },
+    ],
+    // Программы (наборы пунктов), которые прикрепляются к делу: в этот день пункты отмечаются галочками
+    DEFAULT_KITS = [
+      { id: "gymA", title: "Зал · тренировка A", items: ["Разминка: велосипед или эллипс, 8–10 мин", "Жим ногами — 3 × 12–15", "Жим от груди в тренажёре — 3 × 8–12", "Тяга верхнего блока к груди — 3 × 10–12", "Сгибание ног — 3 × 10–12", "Жим вверх в тренажёре — 3 × 10–12", "Разведения в стороны в тренажёре — 2 × 12–15", "Скручивания в тренажёре для пресса — 3 × 12–15", "Ходьба в горку на дорожке — 15–20 мин"] },
+      { id: "gymB", title: "Зал · тренировка B", items: ["Разминка, 8–10 мин", "Хакк-присед (или жим ногами) — 3 × 10–12", "Разгибание ног сидя — 2 × 12–15", "Наклонный жим в тренажёре — 3 × 8–12", "Горизонтальная тяга — 3 × 10–12", "Гиперэкстензия — 3 × 12–15", "Обратная «бабочка» — 2 × 15", "Бицепс в тренажёре + трицепс на блоке — 2 × 12 + 2 × 12", "Подъём ног на «капитанском стуле» — 3 × 8–12", "Ходьба в горку или эллипс — 15–20 мин"] },
+      { id: "gymC", title: "Зал + бассейн", items: ["Гравитрон — 3 × 6–8", "«Бабочка» — 3 × 12–15", "Икры в тренажёре — 3 × 15", "Отведение и приведение бёдер — 2 × 15 каждое", "Бассейн: разминка 200–300 м", "Бассейн: 8–10 × 50 м быстро кролем, отдых 20–30 с", "Бассейн: заминка 200 м"] },
+    ],
+    DEFAULT_TIMES = { wake: ["07:00", "07:00", "07:00", "07:00", "07:00", "07:00", "10:00"], sleep: "23:00" },
     r = {
       habits: PLAN_HABITS,
-      gameLimit: [0, 0, 0, 0, 0, 270, 60],
+      gameLimit: [0, 0, 0, 0, 0, 240, 60],
       timetable: [[], [], [], [], [], [], []],
       weekGoals: {},
       cats: DEFAULT_CATS,
@@ -163,6 +308,8 @@
       times: DEFAULT_TIMES,
       reward: { on: !0, min: 30, pct: 80 },
       projects: [],
+      queues: DEFAULT_QUEUES,
+      kits: DEFAULT_KITS,
       planV: 1,
     },
     c = [
@@ -202,8 +349,8 @@
       ["books", "Книги"],
       ["more", "Ещё"],
     ],
-    MORE_VIEWS = ["more", "week", "goals", "words", "notes"],
-    m = b.map((t) => t[0]).concat(["week", "goals", "words", "notes"]),
+    MORE_VIEWS = ["more", "week", "goals", "words", "notes", "queue", "kits"],
+    m = b.map((t) => t[0]).concat(["week", "goals", "words", "notes", "queue", "kits"]),
     h = ["days", "hw", "notes", "books", "events", "goals", "problems", "weeks", "cards"],
     g = "Блокнот",
     f = "bloknot-v1",
@@ -366,6 +513,9 @@
     schedDraft: null,
     schedWeek: 0,
     schedMode: _() ? "day" : "week",
+    openKit: null,
+    queueId: null,
+    kitsDraft: null,
     projOpen: !1,
     projDraft: null,
     catsOpen: !1,
@@ -443,8 +593,34 @@
         cat: b.cat || null,
         mode: "res" === b.mode ? "res" : "time",
         fixed: !!b.fixed,
+        kit: b.kit || null,
+        queue: b.queue || null,
       }))
       .sort((x, y) => hm(x.start) - hm(y.start));
+  }
+  function normQueues(list) {
+    return (Array.isArray(list) ? list : []).filter((q0) => q0 && q0.id).map((q0) => ({
+      id: String(q0.id),
+      title: String(q0.title || "Очередь"),
+      items: (Array.isArray(q0.items) ? q0.items : []).filter((x0) => x0 && x0.t).map((x0, i0) => ({ id: String(x0.id || "q" + i0 + T()), t: String(x0.t), p: String(x0.p || ""), th: !!x0.th, pr: !!x0.pr })),
+    }));
+  }
+  function normKits(list) {
+    return (Array.isArray(list) ? list : []).filter((k0) => k0 && k0.id).map((k0) => ({
+      id: String(k0.id),
+      title: String(k0.title || "Программа"),
+      items: (Array.isArray(k0.items) ? k0.items : []).map((x0) => String(x0 || "").trim()).filter(Boolean),
+    }));
+  }
+  // Какие дела к чему привязаны по умолчанию: Кружок — к очереди уроков, зал — к программе
+  function tagBlocks(list, wd) {
+    return (list || []).map((b) => {
+      if (!b) return b;
+      const o = Object.assign({}, b);
+      o.queue || "phys" !== o.cat || !/^Кружок/.test(o.title || "") || (o.queue = "kruzhok");
+      o.kit || o.cat || (/бассейн/i.test(o.title || "") ? (o.kit = "gymC") : /^Зал/.test(o.title || "") && (1 === wd ? (o.kit = "gymA") : 3 === wd && (o.kit = "gymB")));
+      return o;
+    });
   }
   function normSched(sc) {
     const o = {};
@@ -499,6 +675,8 @@
     };
     e.reward = Object.assign({}, r.reward, e.reward || {});
     e.projects = normProjects(e.projects);
+    e.queues = normQueues(e.queues);
+    e.kits = normKits(e.kits);
     e.planStart = e.planStart || SESSION_DAY;
     // темы: t — активные, ALLCATS — все (меняем массивы на месте, на них ссылается весь код)
     t.length = 0;
@@ -812,6 +990,74 @@
         d.plan = normBlocks(out);
       }, !1);
   }
+  // v6 (25.11.2026, 20:00): по субботам школа 9–16 (дома в 17, подъём в 7) — суббота как будний вечер, игры 20:30–00:30;
+  // всё расписание по сетке 15 минут; раз в 2 недели в субботу после школы зал и бассейн (с 28.11); репетитор онлайн.
+  const POOL_SATS = ["2026-11-28", "2026-12-12", "2026-12-26", "2027-01-09", "2027-01-23", "2027-02-06", "2027-02-20", "2027-03-06", "2027-03-20"];
+  const poolPlan = () =>
+    normBlocks(tagBlocks([
+      SB("pla", "17:00", 30, "Перекус и сборы"),
+      SB("plb", "17:30", 180, "Зал и бассейн · с дорогой, дома около 20:30"),
+      SB("plc", "20:30", 30, "Ужин и отдых"),
+      SB("pld", "21:00", 210, "Игры и отдых · до 00:30"),
+    ], 5));
+  function migrateV6(n) {
+    const sc = n.sched && "object" == typeof n.sched ? n.sched : N(DEFAULT_SCHED);
+    for (let d0 = 0; d0 < 7; d0++) sigOf(sc["d" + d0]) === sigOf(PREV_SCHED_V5["d" + d0]) && (sc["d" + d0] = N(DEFAULT_SCHED["d" + d0]));
+    n.sched = sc;
+    const was = { hw: "[1,1,1,1,0,0,1]", kruzhok: "[1,0,1,0,0,3,3]", eng: "[0,0,0,0,0,1,1]" };
+    n.habits = (Array.isArray(n.habits) ? n.habits : []).map((h0) => {
+      const def = h0 && PLAN_HABITS.find((x0) => x0.id === h0.id);
+      return def && was[h0.id] === JSON.stringify(h0.t) ? Object.assign({}, h0, { t: def.t.slice() }) : h0;
+    });
+    n.cats = (Array.isArray(n.cats) ? n.cats : N(DEFAULT_CATS)).map((c0) =>
+      !c0 ? c0 : "phys" === c0.id && 8 === c0.goal ? Object.assign({}, c0, { goal: 6 }) : "eng" === c0.id && 1.5 === c0.goal ? Object.assign({}, c0, { goal: 1 }) : c0,
+    );
+    n.gameLimit = (Array.isArray(n.gameLimit) ? n.gameLimit : N(r.gameLimit)).slice();
+    270 === +n.gameLimit[5] && (n.gameLimit[5] = 240);
+    const tm = n.times && "object" == typeof n.times ? N(n.times) : N(DEFAULT_TIMES);
+    tm.wake = (Array.isArray(tm.wake) ? tm.wake : DEFAULT_TIMES.wake).slice();
+    "09:00" === tm.wake[5] && (tm.wake[5] = "07:00");
+    n.times = tm;
+    (Array.isArray(n.queues) && n.queues.length) || (n.queues = N(DEFAULT_QUEUES));
+    (Array.isArray(n.kits) && n.kits.length) || (n.kits = N(DEFAULT_KITS));
+    for (let d0 = 0; d0 < 7; d0++) Array.isArray(n.sched["d" + d0]) && (n.sched["d" + d0] = tagBlocks(n.sched["d" + d0], d0));
+    n.planV = 6;
+    return n;
+  }
+  function applyV6Days() {
+    const today = j(),
+      st2 = bt(),
+      own = (k0) => U.days[k0] && Array.isArray(U.days[k0].plan),
+      hasAny = (k0, ids) => own(k0) && U.days[k0].plan.some((b) => b && ids.includes(b.id)),
+      ok = (k0, ids) => k0 >= today && (!own(k0) || hasAny(k0, ids));
+    // чт 26.11 — по шаблону (зал)
+    "2026-11-26" >= today && hasAny("2026-11-26", ["tyf26a"]) && Tt("2026-11-26", (d) => void delete d.plan, !1);
+    // пт 27.11 — срок ТЮФ: после домашки полчаса на презентацию
+    ok("2026-11-27", ["tyf27a", "tyf27c"]) &&
+      Tt("2026-11-27", (d) => {
+        d.plan = putInto(normBlocks(N(st2.sched.d4 || [])), SB("tyf27d", "21:30", 30, "ТЮФ · правка презентации (срок)", "tyf"), 1290);
+      }, !1);
+    // субботы с залом и бассейном (раз в 2 недели, с 28.11)
+    POOL_SATS.forEach((k0) => {
+      ok(k0, ["cu28a", "pla"]) &&
+        Tt(k0, (d) => {
+          d.plan = poolPlan();
+        }, !1);
+    });
+    // уже сохранённые отдельные дни (сегодня и дальше): Кружок — к очереди уроков, зал — к программе
+    Object.keys(U.days).forEach((k0) => {
+      k0 >= today &&
+        own(k0) &&
+        Tt(k0, (d) => {
+          d.plan = tagBlocks(d.plan, E(M(k0)));
+        }, !1);
+    });
+    // вс 29.11 — шаблон + 15 минут немецкого за среду
+    ok("2026-11-29", ["cu29a", "cu29g"]) &&
+      Tt("2026-11-29", (d) => {
+        d.plan = putInto(normBlocks(N(st2.sched.d6 || [])), SB("cu29h", "19:00", 15, "Немецкий · за среду", "ger", "res"), 1140);
+      }, !1);
+  }
   function applyDayPlans(builders) {
     const today = j(),
       st2 = bt();
@@ -828,25 +1074,25 @@
     if (migratedOnce || !vt() || !U.profile) return;
     const st0 = U.profile.settings,
       v0 = st0 && st0.planStart ? st0.planV || 0 : 0;
-    if (v0 >= 5) return;
+    if (v0 >= 6) return;
     migratedOnce = !0;
     let n = v0 >= 1 ? N(st0) : migrateSettings(st0 || {});
     v0 < 2 && (n = migrateV2(n));
     v0 < 3 && (n = migrateV3(n));
     v0 < 4 && (n = migrateV4(n));
-    n = migrateV5(n);
+    v0 < 5 && (n = migrateV5(n));
+    n = migrateV6(n);
     Lt({ settings: n }, !1);
     v0 < 2 && applySprint2611();
     v0 < 3 && applyDayPlans(CATCHUP_2811);
     v0 < 4 && applyV4Days();
-    applyV5Days();
+    v0 < 5 && applyV5Days();
+    applyV6Days();
     setTimeout(
       () =>
         Ea(
           v0 >= 1
-            ? v0 >= 3
-              ? "Блокнот обновлён: зал во вт и чт, репетитор в вс, пятница свободная, логика в сб в 15:00"
-              : "Блокнот обновлён: дела можно переставлять, есть неделя сеткой, новое расписание недели"
+            ? "Блокнот обновлён: новое расписание недели по сетке 15 минут, суббота — учебный день, бассейн раз в 2 недели"
             : "Блокнот обновлён: расписание, привычки и темы по учебному плану",
         ),
       400,
@@ -1544,6 +1790,66 @@
         : "";
   }
   // ---------- Карточки «Сейчас», «Дальше», плохой день, долги ----------
+  // ---------- Конструктор: очереди (уроки Кружка) и программы (зал) у дел ----------
+  let qMemo = null;
+  // Какой пункт очереди приходится на какое дело: следующие непройденные уроки по порядку, с сегодняшнего дня
+  function queueMap() {
+    if (qMemo) return qMemo;
+    const st2 = bt(),
+      map = {};
+    st2.queues.forEach((q) => {
+      const undone = q.items.filter((x0) => !x0.th);
+      let i0 = 0;
+      for (let k = 0; k < 150 && i0 < undone.length; k++) {
+        const key = j(D(new Date(), k)),
+          blocks = (U.days[key] && U.days[key].blocks) || {};
+        planItems(key).list.forEach((it) => {
+          if (it.queue !== q.id || it.dur <= 0) return;
+          const bs = blocks[it.id] || {};
+          if (bs.qi) {
+            const x0 = q.items.find((y0) => y0.id === bs.qi);
+            return void (x0 && (map[key + "|" + it.id] = { q, x: x0 }));
+          }
+          "done" !== it.status && i0 < undone.length && (map[key + "|" + it.id] = { q, x: undone[i0++] });
+        });
+      }
+    });
+    return (qMemo = map);
+  }
+  function queueWhen(qid) {
+    const out = {};
+    Object.entries(queueMap()).forEach(([k0, v0]) => {
+      v0.q.id === qid && !out[v0.x.id] && (out[v0.x.id] = k0.split("|")[0]);
+    });
+    return out;
+  }
+  function qUpdate(fn, quiet) {
+    const st2 = bt();
+    Lt({ settings: Object.assign({}, N(st2), { queues: fn(N(st2.queues)) }) }, !quiet);
+  }
+  function blockExtra(it, key, forceOpen) {
+    if (it.queue) {
+      const m0 = queueMap()[key + "|" + it.id];
+      return m0
+        ? `<div class="bx">${m0.x.th ? "✓ " : ""}Урок: <b>${O(m0.x.t)}</b>${m0.x.p ? ` · практикум «${O(m0.x.p)}»` : ""}</div>`
+        : "";
+    }
+    if (it.kit) {
+      const kit = bt().kits.find((k0) => k0.id === it.kit);
+      if (!kit) return "";
+      const bs = ((U.days[key] || {}).blocks || {})[it.id] || {},
+        chk = bs.chk || [],
+        open = forceOpen || tt.openKit === key + "|" + it.id;
+      return `<div class="bx"><button class="bx-btn" data-a="kit-open" data-key="${key}" data-id="${O(it.id)}">${O(kit.title)} · ${chk.length}/${kit.items.length} ${open ? "▴" : "▾"}</button>${
+        open
+          ? `<ul class="kit">${kit.items
+              .map((x0, i0) => `<li><button class="kit-i ${chk.includes(i0) ? "on" : ""}" data-a="kit-chk" data-key="${key}" data-id="${O(it.id)}" data-v="${i0}"><span class="box">${w.check}</span><span>${O(x0)}</span></button></li>`)
+              .join("")}</ul>`
+          : ""
+      }</div>`;
+    }
+    return "";
+  }
   function blockRow(it, key, opts = {}) {
     const c = it.cat && "debt" !== it.cat ? s(it.cat) : null,
       col = "debt" === it.cat ? "var(--warn)" : c ? c.color : "var(--muted)",
@@ -1566,7 +1872,7 @@
           : "";
     return `<div class="tl-row"><div class="tl-t mono">${mh(it.s)}</div><div class="blk ${cls}" style="--c:${col}"><div class="bt">${O(it.title)}${
       !plain && it.dur ? ` <span class="bdur">· ${A(it.dur)}</span>` : ""
-    }${badge ? " " + badge : ""}</div>${sub ? `<div class="bs">${sub}</div>` : ""}${play}</div></div>`;
+    }${badge ? " " + badge : ""}</div>${sub ? `<div class="bs">${sub}</div>` : ""}${blockExtra(it, key)}${play}</div></div>`;
   }
   function nextItems(P0, nm) {
     return P0.list.filter((it) => it.dur > 0 && it.s >= nm && (isCatId(it.cat) || "debt" === it.cat) && "done" !== it.status);
@@ -1596,7 +1902,7 @@
     <div class="now-tag"><i></i>Сейчас по расписанию</div>
     <div class="now-time mono">${mh(cur.s)} – ${mh(cur.s + cur.dur)}</div>
     <div class="now-title">${O(cur.title)}</div>
-    <div class="now-sub">Осталось ${A(left)}${"res" === cur.mode ? " · засчитается, когда сделаешь" : ""}</div>
+    <div class="now-sub">Осталось ${A(left)}${"res" === cur.mode ? " · засчитается, когда сделаешь" : ""}</div>${blockExtra(cur, key, !0)}
     <div class="pbar"><div style="width:${pr.toFixed(1)}%"></div></div>
     <div class="btn-row"><button class="btn primary" data-a="blk-start" data-key="${key}" data-id="${O(cur.id)}">${w.play}Начать</button><button class="btn" data-a="blk-done" data-key="${key}" data-id="${O(cur.id)}">Уже сделал</button>${
       "prep" === cur.kind ? `<button class="btn ghost" data-a="no-prep" data-id="${O(cur.evId)}">Убрать</button>` : ""
@@ -1612,7 +1918,7 @@
           : (msg = nx ? "Сейчас свободное время по расписанию." : "На сегодня всё по расписанию. Лечь до " + O(bt().times.sleep) + ".");
     return `<section class="card now calm"><div class="now-sub" style="margin:0">${msg}${
       nx ? ` Дальше — <b>${O(nx.title)}</b> в ${mh(nx.s)}.` : ""
-    }</div>${
+    }</div>${cur && (cur.kit || cur.queue) ? blockExtra(cur, key, !0) : ""}${
       nx && isCatId(nx.cat) ? `<div class="btn-row"><button class="btn" data-a="blk-start" data-key="${key}" data-id="${O(nx.id)}">${w.play}Начать раньше</button>${quick}</div>` : `<div class="btn-row">${quick}</div>`
     }</section>`;
   }
@@ -2121,13 +2427,26 @@
             col = "debt" === it.cat ? "var(--warn)" : cc ? cc.color : "var(--muted)",
             free = isFreeBlk(it),
             cls = ["wg-b", it.cat ? "" : "plain", free ? "free" : "", "done" === it.status ? "done" : "", it.fixed ? "fixed" : "", c.key === today && it.s <= nm && nm < it.s + it.dur ? "cur" : ""].join(" ");
-          return `<div class="${cls}" ${"block" === it.kind ? 'draggable="true"' : ""} ${free ? 'data-free="1"' : ""} data-a="wg-blk" data-key="${c.key}" data-id="${O(it.id)}" style="${pos(it.s, it.dur)};--c:${col}" title="${mh(it.s)}–${mh(it.s + it.dur)} · ${O(it.title)}"><span class="wg-t mono">${mh(it.s)}</span> <span class="wg-n">${O(it.title)}</span></div>`;
+          return `<div class="${cls}" ${"block" === it.kind ? 'draggable="true"' : ""} ${free ? 'data-free="1"' : ""} data-a="wg-blk" data-key="${c.key}" data-id="${O(it.id)}" style="${pos(it.s, it.dur)};--c:${col}" title="${mh(it.s)}–${mh(it.s + it.dur)} · ${O(it.title)}">${it.dur >= 45 ? `<span class="wg-t mono">${mh(it.s)}–${mh(it.s + it.dur)}</span>` : ""}<span class="wg-n">${O(it.title)}</span>${it.queue || it.kit ? '<i class="wg-dot" title="есть программа"></i>' : ""}</div>`;
         })
         .join("")}${nowL}</div></div>`;
       })
       .join("")}
     </div></div>`;
   }
+  const timeOpts = (v0) => {
+      const L = [];
+      for (let m0 = 0; m0 < 1440; m0 += 15) L.push(mh(m0));
+      v0 && !L.includes(v0) && L.unshift(v0);
+      return L.map((t0) => `<option ${t0 === v0 ? "selected" : ""}>${t0}</option>`).join("");
+    },
+    durOpts = (v0) => {
+      const L = [];
+      for (let m0 = 15; m0 <= 360; m0 += 15) L.push(m0);
+      v0 = parseInt(v0, 10) || 0;
+      v0 && !L.includes(v0) && L.unshift(v0);
+      return L.map((m0) => `<option value="${m0}" ${m0 === v0 ? "selected" : ""}>${A(m0)}</option>`).join("");
+    };
   function schedModal() {
     const dr = tt.schedDraft,
       catOpts = (cur) =>
@@ -2161,14 +2480,18 @@
     <div class="sc-list">${dr.blocks
       .map(
         (b0, i0) => `<div class="sc-row ${b0.moveTo ? "moving" : ""}">
-      <input id="sb-start-${i0}" class="mono" type="text" inputmode="numeric" maxlength="5" placeholder="17:30" data-input="sb-start" data-i="${i0}" value="${O(b0.start)}" aria-label="Начало, ЧЧ:ММ">
-      <label class="sc-dur"><input id="sb-dur-${i0}" class="mono" type="number" min="5" max="600" step="5" inputmode="numeric" data-input="sb-dur" data-i="${i0}" value="${b0.dur}" aria-label="Минут"><span>мин</span></label>
+      <select id="sb-start-${i0}" class="mono" data-input="sb-start" data-i="${i0}" aria-label="Начало">${timeOpts(b0.start)}</select>
+      <label class="sc-dur"><select id="sb-dur-${i0}" class="mono" data-input="sb-dur" data-i="${i0}" aria-label="Сколько">${durOpts(b0.dur)}</select></label>
       <input id="sb-title-${i0}" class="sc-title" data-input="sb-title" data-i="${i0}" value="${O(b0.title)}" aria-label="Что делать" autocomplete="off">
       <select id="sb-cat-${i0}" data-input="sb-cat" data-i="${i0}" aria-label="Тема">${catOpts(b0.cat)}</select>
       <select id="sb-mode-${i0}" data-input="sb-mode" data-i="${i0}" aria-label="Как засчитывать" ${b0.cat && "debt" !== b0.cat ? "" : "disabled"}><option value="time" ${"res" !== b0.mode ? "selected" : ""}>по времени</option><option value="res" ${"res" === b0.mode ? "selected" : ""}>по результату</option></select>
       <button class="pin-t ${b0.fixed ? "on" : ""}" data-a="sb-pin" data-i="${i0}" aria-pressed="${!!b0.fixed}" title="Встреча: время не сдвигается">${w.pin}<span>встреча</span></button>
       <button class="x" data-a="sb-del" data-i="${i0}" aria-label="Удалить">×</button>
-      <div class="sc-tools"><button class="mv" data-a="sb-up" data-i="${i0}" aria-label="Поменять с делом выше" ${0 === i0 ? "disabled" : ""}>↑</button><button class="mv" data-a="sb-down" data-i="${i0}" aria-label="Поменять с делом ниже" ${i0 === dr.blocks.length - 1 ? "disabled" : ""}>↓</button>${moveSel(b0, i0)}${
+      <div class="sc-tools"><select id="sb-link-${i0}" data-input="sb-link" data-i="${i0}" aria-label="Что внутри дела"><option value="">без программы</option>${bt()
+        .queues.map((q0) => `<option value="q:${O(q0.id)}" ${b0.queue === q0.id ? "selected" : ""}>Очередь: ${O(q0.title)}</option>`)
+        .join("")}${bt()
+        .kits.map((k0) => `<option value="k:${O(k0.id)}" ${b0.kit === k0.id ? "selected" : ""}>Программа: ${O(k0.title)}</option>`)
+        .join("")}</select><button class="mv" data-a="sb-up" data-i="${i0}" aria-label="Поменять с делом выше" ${0 === i0 ? "disabled" : ""}>↑</button><button class="mv" data-a="sb-down" data-i="${i0}" aria-label="Поменять с делом ниже" ${i0 === dr.blocks.length - 1 ? "disabled" : ""}>↓</button>${moveSel(b0, i0)}${
         b0.moveTo ? `<span class="mv-note">уедет на ${O(dayShort(b0.moveTo))} при сохранении</span>` : ""
       }</div></div>`,
       )
@@ -2309,6 +2632,15 @@
         ["tab", "words", w.words, "Слова", dueT ? `на сегодня: ${dueT}` : `карточек: ${Object.keys(U.cards).length}`],
         ["tab", "notes", w.notes, "Заметки", `заметок: ${Object.values(U.notes).filter(Boolean).length}`],
         ["go-sched", "", w.hw, "Расписание дня", "шаблоны дней, отдельные дни, время сна"],
+        (() => {
+          const q0 = bt().queues[0];
+          if (!q0) return ["kits-open", "", w.flag, "Программы", "пункты для дел"];
+          const dn = q0.items.filter((x0) => x0.th).length,
+            wh = queueWhen(q0.id),
+            last = q0.items.filter((x0) => !x0.th).map((x0) => wh[x0.id]).pop();
+          return ["tab", "queue", w.goals, q0.title, `пройдено ${dn} из ${q0.items.length}${last ? " · по расписанию закончишь " + F(M(last), { day: "numeric", month: "long" }) : ""}`];
+        })(),
+        ["kits-open", "", w.focus, "Программы зала", bt().kits.map((k0) => k0.title.replace(/^Зал · /, "")).join(", ") || "наборы пунктов для дел"],
         [
           "proj-new",
           "",
@@ -2323,7 +2655,43 @@
       .map(([a0, v0, ic, n0, d0]) => `<button class="card more-item" data-a="${a0}" ${v0 ? `data-v="${v0}"` : ""}>${ic}<span><b>${O(n0)}</b><span class="muted small">${O(d0)}</span></span><span class="muted">›</span></button>`)
       .join("")}</div>`;
   }
+  function queueView() {
+    const st2 = bt(),
+      q = st2.queues.find((x0) => x0.id === tt.queueId) || st2.queues[0];
+    if (!q) return `<section class="pagehead">${backLink()}<h1 class="display">Очереди</h1></section><p class="hint">Очередей пока нет.</p>`;
+    const wh = queueWhen(q.id),
+      dn = q.items.filter((x0) => x0.th).length,
+      prT = q.items.filter((x0) => x0.p).length,
+      prD = q.items.filter((x0) => x0.p && x0.pr).length,
+      rest = q.items.filter((x0) => !x0.th),
+      last = rest.map((x0) => wh[x0.id]).pop(),
+      unplaced = rest.filter((x0) => !wh[x0.id]).length;
+    return `<section class="pagehead">${backLink()}<h1 class="display">${O(q.title)}</h1><p class="muted">Уроки сами раскладываются по делам «Кружок» в расписании: переставил или убрал дело — даты пересчитались.</p></section>
+    <div class="tiles"><div class="tile"><span class="t-l">Теория</span><span class="t-v mono">${dn}<small> / ${q.items.length}</small></span></div><div class="tile"><span class="t-l">Практикумы</span><span class="t-v mono">${prD}<small> / ${prT}</small></span></div><div class="tile"><span class="t-l">По расписанию закончишь</span><span class="t-v mono small-v">${last ? O(F(M(last), { day: "numeric", month: "short" })) : unplaced ? "—" : "всё"}</span></div></div>
+    ${unplaced ? `<p class="hint bad-t">${unplaced} ${C(unplaced, "урок", "урока", "уроков")} не помещаются в ближайшие 5 месяцев — добавь дела «Кружок» в расписание.</p>` : ""}
+    <section class="card"><ul class="qlist">${q.items
+      .map(
+        (x0) => `<li class="${x0.th ? "done" : ""}"><span class="qd mono">${x0.th ? "✓" : wh[x0.id] ? O(dayShort(wh[x0.id])) : "—"}</span><span class="qt">${O(x0.t)}${x0.p ? `<small>практикум: ${O(x0.p)}</small>` : ""}</span><span class="qb"><button class="chip ${x0.th ? "on" : ""}" data-a="q-th" data-id="${O(x0.id)}" aria-pressed="${x0.th}">теория</button>${
+          x0.p ? `<button class="chip ${x0.pr ? "on" : ""}" data-a="q-pr" data-id="${O(x0.id)}" aria-pressed="${x0.pr}">практикум</button>` : ""
+        }</span></li>`,
+      )
+      .join("")}</ul></section>
+    <section class="card"><div class="card-h"><h2>Добавить уроки</h2></div><textarea id="q-add" rows="3" data-keep placeholder="По одному на строку. Практикум — через «|»: 1.12 Конденсаторы | Конденсаторы"></textarea><div class="btn-row"><button class="btn primary small" data-a="q-add">Добавить в конец</button></div></section>`;
+  }
+  function kitsView() {
+    const dr = tt.kitsDraft || (tt.kitsDraft = N(bt().kits));
+    return `<section class="pagehead">${backLink()}<h1 class="display">Программы</h1><p class="muted">Программа — список пунктов, который прикрепляется к делу в правке дня («Программа: …»). В этот день пункты отмечаются галочками прямо в расписании.</p></section>
+    ${dr
+      .map(
+        (k0, i0) => `<section class="card"><label class="pj-l">Название<input id="kt-t-${i0}" data-input="kit-title" data-i="${i0}" value="${O(k0.title)}"></label>
+      <label class="pj-l">Пункты — по одному на строку<textarea id="kt-i-${i0}" rows="${Math.max(4, k0.items.length + 1)}" data-input="kit-items" data-i="${i0}">${O(k0.items.join("\n"))}</textarea></label></section>`,
+      )
+      .join("")}
+    <div class="btn-row"><button class="btn" data-a="kit-new">+ Программа</button><button class="btn primary" data-a="kits-save">Сохранить программы</button></div>`;
+  }
   const pa = {
+      queue: queueView,
+      kits: kitsView,
       today: function () {
         const a = new Date(),
           e = j(a),
@@ -3025,6 +3393,7 @@
         }));
   }
   function $a() {
+    qMemo = null;
     ha = !1;
     maybeMigrate();
     bt();
@@ -3234,7 +3603,7 @@
       return void swapBlocks(src.key, src.id, tb.dataset.key, tb.dataset.id);
     const r0 = col.getBoundingClientRect(),
       px = parseFloat(getComputedStyle(col).getPropertyValue("--px")) || 1,
-      at = Math.max(0, 5 * Math.round((Number(col.dataset.t0) + (ev.clientY - src.off - r0.top) / px) / 5));
+      at = Math.max(0, 15 * Math.round((Number(col.dataset.t0) + (ev.clientY - src.off - r0.top) / px) / 15));
     moveBlock(src.key, src.id, col.dataset.key, at);
   });
   let lastTickMin = -1;
@@ -3423,7 +3792,8 @@
       first = plan.length ? Math.min(...plan.map((b) => hm(b.start))) : hm(st2.times.wake[E(M(key))]),
       fits = (s0) => s0 + dur <= sleep && !busy.some(([a0, e0]) => a0 < s0 + dur && s0 < e0);
     for (const from of [Math.max(pref, first), first]) {
-      const cands = [from].concat(busy.map(([, e0]) => e0).filter((e0) => e0 >= from)).sort((x0, y0) => x0 - y0);
+      const q15 = (v0) => 15 * Math.ceil(v0 / 15),
+        cands = [q15(from)].concat(busy.map(([, e0]) => q15(e0)).filter((e0) => e0 >= from)).sort((x0, y0) => x0 - y0);
       for (const s0 of cands) if (fits(s0)) return s0;
     }
     return Math.max(pref, first);
@@ -3513,12 +3883,20 @@
   }
   function blkDone(key, id) {
     const tm = ht(),
-      it = planItems(key).list.find((x0) => x0.id === id);
+      it = planItems(key).list.find((x0) => x0.id === id),
+      qm = it && it.queue ? queueMap()[key + "|" + id] : null;
+    qm &&
+      !qm.x.th &&
+      qUpdate((qs) => {
+        const q0 = qs.find((y0) => y0.id === qm.q.id),
+          x0 = q0 && q0.items.find((y0) => y0.id === qm.x.id);
+        return (x0 && (x0.th = !0), qs);
+      }, !0);
     tm && tm.blk === id && Bt(!0, !0);
     Tt(
       key,
       (d) => {
-        (d.blocks = d.blocks || {}), (d.blocks[id] = Object.assign({}, d.blocks[id], { st: "done", at: Date.now() })), it && !it.byHabit && "done" !== it.status && bumpHabitIn(d, it.cat, key);
+        (d.blocks = d.blocks || {}), (d.blocks[id] = Object.assign({}, d.blocks[id], { st: "done", at: Date.now() }, qm ? { qi: qm.x.id } : {})), it && !it.byHabit && "done" !== it.status && bumpHabitIn(d, it.cat, key);
       },
       !1,
     );
@@ -3574,6 +3952,8 @@
           cat: b0.cat || null,
           mode: b0.cat && "debt" !== b0.cat && "res" === b0.mode ? "res" : "time",
           fixed: !!b0.fixed,
+          kit: b0.kit || null,
+          queue: b0.queue || null,
         }))
         .sort((x0, y0) => hm(x0.start) - hm(y0.start)),
       sched = N(st2.sched),
@@ -4160,7 +4540,7 @@
           case "sb-add": {
             const bl = tt.schedDraft.blocks,
               last = bl[bl.length - 1];
-            (bl.push({ id: T(), start: last ? mh(hm(last.start) + (parseInt(last.dur, 10) || 30)) : "17:00", dur: 30, title: "Новое дело", cat: null, mode: "time" }), $a());
+            (bl.push({ id: T(), start: last ? mh(15 * Math.ceil((hm(last.start) + (parseInt(last.dur, 10) || 30)) / 15)) : "17:00", dur: 30, title: "Новое дело", cat: null, mode: "time" }), $a());
             const el0 = k("sb-title-" + (bl.length - 1));
             el0 && (el0.focus(), el0.select());
             break;
@@ -4233,6 +4613,68 @@
               ((g.start = mh(fs)), (f.start = mh(fs + (parseInt(g.dur, 10) || 30) + gap)));
             }
             ((bl[lo] = g), (bl[lo + 1] = f), $a());
+            break;
+          }
+          case "kit-open": {
+            const k0 = e.dataset.key + "|" + i;
+            ((tt.openKit = tt.openKit === k0 ? null : k0), $a());
+            break;
+          }
+          case "kit-chk": {
+            const ix = Number(n);
+            Tt(e.dataset.key, (d) => {
+              d.blocks = d.blocks || {};
+              const b0 = (d.blocks[i] = Object.assign({}, d.blocks[i])),
+                c0 = new Set(b0.chk || []);
+              c0.has(ix) ? c0.delete(ix) : c0.add(ix);
+              b0.chk = [...c0].sort((x0, y0) => x0 - y0);
+            });
+            break;
+          }
+          case "q-th":
+          case "q-pr": {
+            const f0 = "q-th" === s ? "th" : "pr",
+              qid = (bt().queues.find((x0) => x0.id === tt.queueId) || bt().queues[0] || {}).id;
+            qUpdate((qs) => {
+              const x0 = (qs.find((y0) => y0.id === qid) || { items: [] }).items.find((y0) => y0.id === i);
+              return (x0 && (x0[f0] = !x0[f0]), qs);
+            });
+            break;
+          }
+          case "q-add": {
+            const el0 = k("q-add"),
+              lines = String((el0 && el0.value) || "").split(/\n+/).map((l0) => l0.trim()).filter(Boolean),
+              qid = (bt().queues.find((x0) => x0.id === tt.queueId) || bt().queues[0] || {}).id;
+            if (!lines.length || !qid) break;
+            el0 && (el0.value = "");
+            qUpdate((qs) => {
+              const q0 = qs.find((y0) => y0.id === qid);
+              q0 &&
+                lines.forEach((l0) => {
+                  const [t0, p0] = l0.split("|").map((x1) => (x1 || "").trim());
+                  q0.items.push({ id: "q" + T(), t: t0, p: p0 || "", th: !1, pr: !1 });
+                });
+              return qs;
+            });
+            Ea(`Добавлено: ${lines.length}`);
+            break;
+          }
+          case "kits-open":
+            ((tt.kitsDraft = N(bt().kits)), (tt.settingsOpen = !1), Fa("kits"));
+            break;
+          case "kit-new":
+            (tt.kitsDraft || (tt.kitsDraft = N(bt().kits))).push({ id: "k" + T(), title: "Новая программа", items: [] });
+            $a();
+            break;
+          case "kits-save": {
+            const kits = (tt.kitsDraft || []).map((k0) => ({
+              id: k0.id,
+              title: String(k0.title || "").trim() || "Программа",
+              items: (Array.isArray(k0.items) ? k0.items : String(k0.items || "").split(/\n+/)).map((x0) => String(x0).trim()).filter(Boolean),
+            }));
+            Lt({ settings: Object.assign({}, N(bt()), { kits }) });
+            tt.kitsDraft = null;
+            Ea("Программы сохранены");
             break;
           }
           case "sched-mode":
@@ -4587,8 +5029,20 @@
           case "sd-sleep":
             tt.schedDraft.sleep = a.value;
             break;
+          case "sb-link": {
+            const b0 = tt.schedDraft && tt.schedDraft.blocks[+a.dataset.i],
+              v0 = a.value || "";
+            b0 && ((b0.queue = v0.startsWith("q:") ? v0.slice(2) : null), (b0.kit = v0.startsWith("k:") ? v0.slice(2) : null));
+            break;
+          }
           case "sb-move":
             tt.schedDraft && tt.schedDraft.blocks[+a.dataset.i] && ((tt.schedDraft.blocks[+a.dataset.i].moveTo = a.value || null), $a());
+            break;
+          case "kit-title":
+            tt.kitsDraft && tt.kitsDraft[+a.dataset.i] && (tt.kitsDraft[+a.dataset.i].title = a.value);
+            break;
+          case "kit-items":
+            tt.kitsDraft && tt.kitsDraft[+a.dataset.i] && (tt.kitsDraft[+a.dataset.i].items = a.value.split(/\n/));
             break;
           case "pj-title":
             tt.projDraft && (tt.projDraft.title = a.value);

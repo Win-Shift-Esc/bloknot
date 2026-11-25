@@ -1,6 +1,6 @@
 // Блокнот: офлайн-режим и установка на телефон.
 // Если заменишь файлы на новую версию, увеличь номер версии, чтобы телефон точно забыл старый кэш.
-const CACHE = "bloknot-v7";
+const CACHE = "bloknot-v8";
 const SHELL = ["./", "./index.html", "./styles.css", "./app.js", "./config.js", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png"];
 
 self.addEventListener("install", e => {
