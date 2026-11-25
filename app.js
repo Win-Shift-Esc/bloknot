@@ -3,7 +3,7 @@
   // Темы таймера. t — активные темы (меняется на месте при смене настроек), ALLCATS — все, включая архив.
   const DEFAULT_CATS = [
       { id: "phys", name: "Олимпиадная физика", short: "Физика", color: "#ff6a3d", goal: 10 },
-      { id: "tyf", name: "ТЮФ", short: "ТЮФ", color: "#9b7bff", goal: 2.5 },
+      { id: "tyf", name: "ТЮФ", short: "ТЮФ", color: "#9b7bff", goal: 0 },
       { id: "hw", name: "Домашка и школа", short: "Школа", color: "#4f8dff", goal: 0 },
       { id: "philo", name: "Логика и философия", short: "Логика", color: "#2ec4a6", goal: 2.5 },
       { id: "ger", name: "Немецкий", short: "Немецкий", color: "#b7dd4a", goal: 3.5 },
@@ -55,7 +55,6 @@
     PLAN_HABITS = [
       { id: "hw", name: "Домашка", t: [1, 1, 1, 1, 1, 0, 1] },
       { id: "kruzhok", name: "Урок «Кружка»", t: [1, 1, 1, 1, 1, 3, 3] },
-      { id: "tyf", name: "ТЮФ", t: [0, 0, 1, 0, 0, 1, 0] },
       { id: "philo", name: "Логика и философия", t: [1, 0, 0, 0, 1, 0, 1] },
       { id: "ger", name: "Немецкий", t: [1, 1, 1, 1, 1, 1, 1] },
       { id: "eng", name: "Английский", t: [0, 0, 0, 0, 0, 1, 1] },
@@ -71,8 +70,8 @@
       { id: "m4", name: "Лечь до 23:00" },
     ],
     // Шаблон дня: start "ЧЧ:ММ", dur в минутах, cat — тема таймера (null — отдых без таймера, "debt" — окно долгов),
-    // mode: "res" — по результату (быстрее можно), "time" — по времени.
-    SB = (id, start, dur, title, cat, mode) => ({ id, start, dur, title, cat: cat || null, mode: mode || "time" }),
+    // mode: "res" — по результату (быстрее можно), "time" — по времени. fixed — встреча: время не сдвигается.
+    SB = (id, start, dur, title, cat, mode, fixed) => ({ id, start, dur, title, cat: cat || null, mode: mode || "time", fixed: !!fixed }),
     WD_EVENING = (d, extra) =>
       [
         SB(d + "a", "17:00", 30, "Обед и отдых"),
@@ -96,7 +95,7 @@
       ]),
       d2: WD_EVENING("we", [
         SB("wed", "20:00", 15, "Перерыв"),
-        SB("wee", "20:15", 60, "ТЮФ", "tyf"),
+        SB("wee", "20:15", 60, "Окно долгов и проектов", "debt"),
         SB("wef", "21:15", 35, "Немецкий · порция", "ger", "res"),
         SB("weg", "21:50", 10, "Свободно"),
         SB("weh", "22:00", 30, "Чтение", "read"),
@@ -123,7 +122,7 @@
         SB("sad", "12:30", 60, "Обед"),
         SB("sae", "13:30", 60, "Кружок · урок 3", "phys", "res"),
         SB("saf", "15:00", 60, "Окно долгов", "debt"),
-        SB("sag", "16:00", 90, "ТЮФ · встреча команды", "tyf"),
+        SB("sag", "16:00", 90, "ТЮФ · встреча команды", "tyf", "time", 1),
         SB("sah", "17:30", 45, "Английский", "eng"),
         SB("sai", "18:15", 20, "Немецкий · разговор", "ger", "res"),
         SB("saj", "19:00", 120, "Игры и отдых"),
@@ -155,6 +154,7 @@
       minimum: DEFAULT_MIN,
       times: DEFAULT_TIMES,
       reward: { on: !0, min: 30, pct: 80 },
+      projects: [],
       planV: 1,
     },
     c = [
@@ -356,6 +356,9 @@
     schedDay: E(new Date()),
     schedOpen: !1,
     schedDraft: null,
+    schedWeek: 0,
+    projOpen: !1,
+    projDraft: null,
     catsOpen: !1,
     catsDraft: null,
     focus: !1,
@@ -419,23 +422,43 @@
     });
     return out;
   }
+  // Дела расписания: и в шаблоне дня недели, и в плане на одну дату (days/<дата>.plan).
+  function normBlocks(src) {
+    return (Array.isArray(src) ? src : [])
+      .filter((b) => b && /^\d{1,2}:\d{2}$/.test(b.start || ""))
+      .map((b) => ({
+        id: String(b.id || T()),
+        start: b.start,
+        dur: Math.max(5, Math.min(600, parseInt(b.dur, 10) || 30)),
+        title: String(b.title || "Дело"),
+        cat: b.cat || null,
+        mode: "res" === b.mode ? "res" : "time",
+        fixed: !!b.fixed,
+      }))
+      .sort((x, y) => hm(x.start) - hm(y.start));
+  }
   function normSched(sc) {
     const o = {};
-    for (let d = 0; d < 7; d++) {
-      const src = sc && "object" == typeof sc && Array.isArray(sc["d" + d]) ? sc["d" + d] : DEFAULT_SCHED["d" + d];
-      o["d" + d] = src
-        .filter((b) => b && /^\d{1,2}:\d{2}$/.test(b.start || ""))
-        .map((b) => ({
-          id: String(b.id || T()),
-          start: b.start,
-          dur: Math.max(5, Math.min(600, parseInt(b.dur, 10) || 30)),
-          title: String(b.title || "Дело"),
-          cat: b.cat || null,
-          mode: "res" === b.mode ? "res" : "time",
-        }))
-        .sort((x, y) => hm(x.start) - hm(y.start));
-    }
+    for (let d = 0; d < 7; d++)
+      o["d" + d] = normBlocks(sc && "object" == typeof sc && Array.isArray(sc["d" + d]) ? sc["d" + d] : DEFAULT_SCHED["d" + d]);
     return o;
+  }
+  // Проекты: разовые дела со сроком и шагами (ТЮФ, доклад, подготовка к олимпиаде). Это не привычки.
+  function normProjects(list) {
+    return (Array.isArray(list) ? list : [])
+      .filter((p0) => p0 && p0.id)
+      .map((p0) => ({
+        id: String(p0.id),
+        title: String(p0.title || "Проект"),
+        cat: p0.cat || null,
+        due: /^\d{4}-\d{2}-\d{2}$/.test(p0.due || "") ? p0.due : "",
+        steps: (Array.isArray(p0.steps) ? p0.steps : [])
+          .filter((x0) => x0 && String(x0.t || "").trim())
+          .map((x0) => ({ id: String(x0.id || T()), t: String(x0.t).trim(), done: !!x0.done })),
+        done: !!p0.done,
+        created: p0.created || 0,
+        doneAt: p0.doneAt || 0,
+      }));
   }
   function hm(s) {
     const [h, mm] = String(s || "0:0").split(":").map(Number);
@@ -466,6 +489,7 @@
       sleep: tm.sleep || DEFAULT_TIMES.sleep,
     };
     e.reward = Object.assign({}, r.reward, e.reward || {});
+    e.projects = normProjects(e.projects);
     e.planStart = e.planStart || SESSION_DAY;
     // темы: t — активные, ALLCATS — все (меняем массивы на месте, на них ссылается весь код)
     t.length = 0;
@@ -494,14 +518,129 @@
     n.planStart = o.planStart || j(D(new Date(), 1));
     return n;
   }
+  // v2 (25.11.2026): ТЮФ — не привычка, а проекты со сроком. Привычку «ТЮФ» и цель 2,5 ч в неделю убираем,
+  // еженедельный час ТЮФ в среду становится окном долгов и проектов, встреча команды закреплена по времени.
+  function migrateV2(n) {
+    n.habits = (Array.isArray(n.habits) ? n.habits : N(PLAN_HABITS)).filter((h0) => h0 && "tyf" !== h0.id);
+    n.cats = (Array.isArray(n.cats) && n.cats.length ? n.cats : N(DEFAULT_CATS)).map((c0) =>
+      c0 && "tyf" === c0.id ? Object.assign({}, c0, { goal: 0 }) : c0,
+    );
+    const sc = n.sched && "object" == typeof n.sched ? n.sched : N(DEFAULT_SCHED);
+    Object.keys(sc).forEach((k0) => {
+      Array.isArray(sc[k0]) &&
+        (sc[k0] = sc[k0].map((b0) =>
+          !b0 || "tyf" !== b0.cat
+            ? b0
+            : /встреч/i.test(b0.title || "")
+              ? Object.assign({}, b0, { fixed: !0 })
+              : Object.assign({}, b0, { title: "Окно долгов и проектов", cat: "debt", mode: "time" }),
+        ));
+    });
+    n.sched = sc;
+    n.projects = normProjects(n.projects);
+    const sp = SPRINT_2611.project;
+    j() <= sp.due &&
+      !n.projects.some((p0) => p0.id === sp.id) &&
+      n.projects.push({
+        id: sp.id,
+        title: sp.title,
+        cat: "tyf",
+        due: sp.due,
+        steps: sp.steps.map((t0, i0) => ({ id: sp.id + "-" + i0, t: t0, done: !1 })),
+        done: !1,
+        created: Date.now(),
+        doneAt: 0,
+      });
+    n.planV = 2;
+    return n;
+  }
+  // Разовый рывок по ТЮФ к пятнице 27.11.2026: проект и планы трёх дней (ставятся один раз, при обновлении до v2).
+  // Шаблоны дней не меняются: это планы «только на этот день».
+  const SPRINT_2611 = {
+    project: {
+      id: "tyf-2611",
+      title: "ТЮФ: «Очки-обскура» и «Тише едешь»",
+      due: "2026-11-27",
+      steps: [
+        "Послушать презентации команды и записать замечания",
+        "Прочитать статьи по «Тише едешь»",
+        "Прочитать статьи по «Очкам-обскуре»",
+        "Отредактировать презентацию",
+      ],
+    },
+    // 25.11 подготовка к контрольной 26.11 уже внутри домашки — отдельный блок не ставим
+    noPrep: { "2026-11-25": "2026-11-26" },
+    days: {
+      "2026-11-25": () =>
+        normBlocks([
+          SB("wea", "17:00", 60, "Обед и отдых"),
+          SB("web", "18:00", 60, "Домашка + история к контрольной", "hw", "res"),
+          SB("tyf25", "19:00", 120, "ТЮФ · презентации команды", "tyf", "time", 1),
+          SB("wed", "21:00", 15, "Перерыв"),
+          SB("wec", "21:15", 45, "Кружок · 1 урок", "phys", "res"),
+          SB("wef", "22:00", 15, "Немецкий · короткая порция", "ger", "res"),
+          SB("weh", "22:15", 30, "Чтение", "read"),
+          SB("wei", "22:45", 15, "Подготовка ко сну"),
+        ]),
+      "2026-11-26": (tpl) => swapIn(tpl, [["phys", "tyf26a", "ТЮФ · статьи по темам"]]),
+      "2026-11-27": (tpl) =>
+        swapIn(tpl, [
+          ["phys", "tyf27a", "ТЮФ · статьи по темам"],
+          ["philo", "tyf27b", "ТЮФ · правка презентации"],
+        ]),
+    },
+  };
+  // Копия шаблона дня, где дела темы cat заменены на дела проекта (по времени, тема ТЮФ)
+  function swapIn(tpl, swaps) {
+    const out = N(tpl || []);
+    swaps.forEach(([cat, id, title]) => {
+      const b0 = out.find((x0) => x0 && x0.cat === cat);
+      if (b0) Object.assign(b0, { id, title, cat: "tyf", mode: "time", fixed: !1 });
+      else {
+        const hw0 = out.find((x0) => x0 && "hw" === x0.cat);
+        out.push(SB(id, mh(hw0 ? hm(hw0.start) + hw0.dur : 1140), 60, title, "tyf"));
+      }
+    });
+    return normBlocks(out);
+  }
+  function applySprint2611() {
+    const today = j(),
+      st2 = bt();
+    Object.keys(SPRINT_2611.days).forEach((key) => {
+      if (key < today || (U.days[key] && Array.isArray(U.days[key].plan))) return;
+      const plan = SPRINT_2611.days[key](st2.sched["d" + E(M(key))]),
+        prepFor = SPRINT_2611.noPrep[key];
+      Tt(
+        key,
+        (d) => {
+          d.plan = plan;
+          prepFor &&
+            Object.entries(U.events).forEach(([id, ev]) => {
+              ev && ev.date === prepFor && ("test" === ev.type || "olymp" === ev.type) && ((d.noPrep = d.noPrep || {}), (d.noPrep[id] = !0));
+            });
+        },
+        !1,
+      );
+    });
+  }
   let migratedOnce = !1;
   function maybeMigrate() {
     if (migratedOnce || !vt() || !U.profile) return;
-    const st0 = U.profile.settings;
-    if (st0 && 1 === st0.planV && st0.planStart) return;
+    const st0 = U.profile.settings,
+      v0 = st0 && st0.planStart ? st0.planV || 0 : 0;
+    if (v0 >= 2) return;
     migratedOnce = !0;
-    Lt({ settings: migrateSettings(st0 || {}) }, !1);
-    setTimeout(() => Ea("Блокнот обновлён: расписание, привычки и темы по учебному плану"), 400);
+    Lt({ settings: migrateV2(v0 >= 1 ? N(st0) : migrateSettings(st0 || {})) }, !1);
+    applySprint2611();
+    setTimeout(
+      () =>
+        Ea(
+          v0 >= 1
+            ? "Блокнот обновлён: ТЮФ теперь проект со сроком, а дни можно менять по отдельности"
+            : "Блокнот обновлён: расписание, привычки и темы по учебному плану",
+        ),
+      400,
+    );
   }
   const mt = () => (U.profile && U.profile.onboard) || {};
   function ht() {
@@ -794,10 +933,10 @@
       const mn = bt().minimum;
       return mn.length ? mn.filter((m) => t.min && t.min[m.id]).length / mn.length : null;
     }
-    const e = E(a),
-      s = bt().habits.filter((t) => (t.t[e] || 0) > 0),
-      n = s.reduce((t, a) => t + a.t[e], 0);
-    return n ? s.reduce((a, s) => a + Math.min((t && t.habits && t.habits[s.id]) || 0, s.t[e]), 0) / n : null;
+    const k0 = j(a),
+      s = bt().habits.filter((h0) => hT(h0, k0) > 0),
+      n = s.reduce((acc, h0) => acc + hT(h0, k0), 0);
+    return n ? s.reduce((acc, h0) => acc + Math.min((t && t.habits && t.habits[h0.id]) || 0, hT(h0, k0)), 0) / n : null;
   }
   function Xt() {
     let t = 0,
@@ -1027,14 +1166,27 @@
     return Math.max(0, (now - tm.startedAt - paused) / 1e3);
   }
   const isCatId = (c) => !!c && "debt" !== c;
-  // План дня: шаблон + подготовка к завтрашним контрольным + продления. Отдых (без темы) — «буфер», он сжимается.
+  // Привычка → тема таймера (обратно к HABIT_OF)
+  const CAT_OF_HABIT = { hw: "hw", kruzhok: "phys", tyf: "tyf", philo: "philo", ger: "ger", eng: "eng", read: "read" };
+  // Сколько раз нужна привычка в этот день. Если день изменён «только на этот день», привычка темы,
+  // которой нет в плане дня, не требуется: её место занял план (например, рывок по проекту).
+  function hT(h0, key) {
+    const base = h0.t[E(M(key))] || 0,
+      day = U.days[key],
+      cat = CAT_OF_HABIT[h0.id];
+    if (!base || !cat || !day || !Array.isArray(day.plan)) return base;
+    return Math.min(base, day.plan.filter((b) => b && b.cat === cat).length);
+  }
+  // План дня: шаблон (или план «только на этот день») + подготовка к завтрашним контрольным + продления.
+  // Отдых (без темы) — «буфер», он сжимается. Встреча (fixed) стоит на своём времени, остальное обходит её.
   function planItems(key) {
     const dt0 = M(key),
       wd = E(dt0),
       st = bt(),
       day = U.days[key] || {},
       bl = day.blocks || {},
-      raw = (st.sched["d" + wd] || []).map((b) =>
+      own = Array.isArray(day.plan),
+      raw = (own ? normBlocks(day.plan) : st.sched["d" + wd] || []).map((b) =>
         Object.assign({}, b, { kind: "block", s0: hm(b.start), base: b.dur, ext: (bl[b.id] && bl[b.id].ext) || 0 }),
       );
     const tomorrow = j(D(dt0, 1));
@@ -1063,20 +1215,34 @@
           ext: (bl[pid] && bl[pid].ext) || 0,
         });
       });
+    const fixedL = raw.filter((b) => b.fixed).map((b) => ({ s: b.s0, e: b.s0 + b.base + b.ext }));
     let cur = 0;
     const list = [];
     raw.forEach((b) => {
-      const want = b.base + b.ext;
-      let s0 = Math.max(b.s0, cur),
-        dur = want;
-      if (!b.cat) {
-        const end = b.s0 + b.base;
-        dur = Math.max(0, end - s0);
-      }
       const st2 = (bl[b.id] && bl[b.id].st) || "";
+      if (b.fixed) return void list.push(Object.assign({}, b, { s: b.s0, dur: b.base + b.ext, status: st2 }));
+      let s0 = Math.max(b.s0, cur),
+        dur = b.base + b.ext;
+      if (!b.cat) {
+        let end = b.s0 + b.base;
+        fixedL.forEach((f) => {
+          f.s <= s0 && s0 < f.e && (s0 = f.e);
+        });
+        fixedL.forEach((f) => {
+          f.s > s0 && f.s < end && (end = f.s);
+        });
+        dur = Math.max(0, end - s0);
+      } else
+        for (let g = 0; g < 9; g++) {
+          const f = fixedL.find((f0) => f0.s < s0 + dur && s0 < f0.e);
+          if (!f) break;
+          // успевает до встречи хотя бы 15 минут — укорачиваем, иначе переносим после встречи
+          f.s > s0 && f.s - s0 >= 15 ? (dur = f.s - s0) : (s0 = f.e);
+        }
       list.push(Object.assign({}, b, { s: s0, dur, status: st2 }));
       cur = s0 + dur;
     });
+    list.sort((x0, y0) => x0.s - y0.s);
     const cnt = {};
     list.forEach((b) => {
       if (!isCatId(b.cat) || b.status) return;
@@ -1088,7 +1254,7 @@
     const sleep = hm(st.times.sleep),
       lastCat = list.filter((b) => isCatId(b.cat) && b.dur > 0).pop(),
       over = lastCat ? Math.max(0, lastCat.s + lastCat.dur - sleep) : 0;
-    return { list, over, sleep, wake: hm(st.times.wake[wd]), wd, bad: !!day.bad };
+    return { list, over, sleep, wake: hm(st.times.wake[wd]), wd, bad: !!day.bad, own };
   }
   function blkLogged(key, id) {
     const d = U.days[key];
@@ -1098,7 +1264,7 @@
     const hid = HABIT_OF[cat],
       hb = bt().habits.find((h) => h.id === hid);
     if (!hb) return;
-    const tgt = hb.t[E(M(key))] || 0;
+    const tgt = hT(hb, key);
     tgt && ((d.habits = d.habits || {}), (d.habits[hid] = Math.min(tgt, (d.habits[hid] || 0) + 1)));
   }
   // План и факт по темам за неделю (только с начала работы по плану и только прошедшие блоки)
@@ -1180,7 +1346,9 @@
             ? `<span class="badge">+${it.ext} мин</span>`
             : "moved" === it.status
               ? '<span class="badge">перенесено</span>'
-              : "",
+              : it.fixed
+                ? '<span class="badge">встреча</span>'
+                : "",
       sub = opts.sub || "",
       play =
         opts.play && isCatId(it.cat) && "done" !== it.status
@@ -1272,14 +1440,17 @@
     <section class="card"><div class="card-h"><h2>Освободилось ${A(freed)}</h2></div><div class="opt-list">${opts}</div></section>`;
   }
   function debtWindowCard(cur) {
-    const dts = debtsNow();
-    return `<section class="card now" style="--c:var(--warn)"><div class="now-tag"><i></i>Окно долгов · до ${mh(cur.s + cur.dur)}</div>
+    const dts = debtsNow(),
+      po = projOpts();
+    return `<section class="card now" style="--c:var(--warn)"><div class="now-tag"><i></i>Окно долгов и проектов · до ${mh(cur.s + cur.dur)}</div>
     ${
       dts.length
         ? `<div class="now-sub" style="margin-bottom:8px">Выбери, что закрыть:</div><div class="opt-list">${dts
             .map((r) => `<button class="opt" data-a="debt-start" data-cat="${O(r.cat.id)}" data-min="${r.debt}"><i class="dot" style="background:${r.cat.color}"></i>${O(r.cat.name)} · ${A(r.debt)}</button>`)
-            .join("")}</div>`
-        : '<div class="now-sub">Долгов нет — это свободное время. Отдыхай.</div>'
+            .join("")}${po}</div>`
+        : po
+          ? `<div class="now-sub" style="margin-bottom:8px">Долгов нет. Можно продвинуть проект:</div><div class="opt-list">${po}</div>`
+          : '<div class="now-sub">Долгов и проектов нет — это свободное время. Отдыхай.</div>'
     }</section>`;
   }
   function nextArea() {
@@ -1294,7 +1465,55 @@
     return `<section class="card"><div class="card-h"><h2>Дальше сегодня</h2><button class="link" data-a="go-sched">Всё расписание →</button></div>
     <div class="tl">${list.map((it) => blockRow(it, key, { play: !0 })).join("")}</div>${
       P0.over ? `<p class="hint bad-t">До сна не влезает ${A(P0.over)} — что-то перенеси или сократи.</p>` : ""
-    }</section>`;
+    }<div class="btn-row"><button class="btn small" data-a="sched-edit-day" data-key="${key}">Изменить сегодня</button>${
+      P0.own ? '<span class="muted small">план только на сегодня</span>' : ""
+    }</div></section>`;
+  }
+  // ---------- Проекты на главной ----------
+  function projDueText(p0) {
+    if (!p0.due) return "без срока";
+    const dl = P(p0.due),
+      dd = M(p0.due);
+    return dl < 0
+      ? `срок был ${O(F(dd, { day: "numeric", month: "long" }))}`
+      : 0 === dl
+        ? "срок сегодня"
+        : 1 === dl
+          ? "срок завтра"
+          : `срок ${O(F(dd, { weekday: "short", day: "numeric", month: "long" }))} · ${G(dl)}`;
+  }
+  function projectsArea() {
+    const tm = ht();
+    return bt()
+      .projects.filter((p0) => !p0.done)
+      .map((p0) => {
+        const c = p0.cat ? s(p0.cat) : null,
+          n0 = p0.steps.length,
+          k0 = p0.steps.filter((x0) => x0.done).length,
+          hot = p0.due && P(p0.due) <= 1;
+        return `<section class="card proj" style="--c:${c ? c.color : "var(--accent)"}"><div class="card-h"><h2>${O(p0.title)}</h2><span class="mono muted small">${k0}/${n0}</span></div>
+    <p class="hint top0 ${hot ? "bad-t" : ""}">Проект · ${projDueText(p0)}</p>
+    ${n0 ? `<div class="pbar"><div style="width:${((k0 / n0) * 100).toFixed(1)}%"></div></div>` : ""}
+    <ul class="habits proj-steps">${p0.steps
+      .map(
+        (x0) =>
+          `<li><button class="habit ${x0.done ? "done" : ""}" data-a="proj-step" data-id="${O(p0.id)}" data-v="${O(x0.id)}" aria-pressed="${x0.done}"><span class="box">${w.check}</span><span class="hname">${O(x0.t)}</span></button></li>`,
+      )
+      .join("")}</ul>
+    <div class="btn-row">${c && !tm ? `<button class="btn small" data-a="proj-timer" data-id="${O(p0.id)}">${w.play}Засечь: ${O(c.short)}</button>` : ""}${
+      n0 && k0 === n0 ? `<button class="btn small primary" data-a="proj-finish" data-id="${O(p0.id)}">Проект готов</button>` : ""
+    }<button class="link" data-a="proj-edit" data-id="${O(p0.id)}">Изменить</button></div></section>`;
+      })
+      .join("");
+  }
+  function projOpts() {
+    return bt()
+      .projects.filter((p0) => !p0.done && p0.cat && p0.steps.some((x0) => !x0.done))
+      .map((p0) => {
+        const nx = p0.steps.find((x0) => !x0.done);
+        return `<button class="opt" data-a="proj-timer" data-id="${O(p0.id)}"><i class="dot" style="background:${s(p0.cat).color}"></i>Проект: ${O(p0.title)}<span>дальше: ${O(nx.t)} · ${projDueText(p0)}</span></button>`;
+      })
+      .join("");
   }
   function badArea(o) {
     const key = j();
@@ -1440,6 +1659,23 @@
           wb.rows.filter((r) => r.debt >= 5).length ? " (" + wb.rows.filter((r) => r.debt >= 5).map((r) => `${r.cat.short} ${A(r.debt)}`).join(", ") + ")" : ""
         }`,
       );
+    const prj = st.projects.filter((p0) => !p0.done || p0.doneAt >= days[0].getTime());
+    prj.length &&
+      lines.push(
+        "Проекты: " +
+          prj
+            .map(
+              (p0) =>
+                `${p0.title} — ${
+                  p0.done
+                    ? "готов"
+                    : `${p0.steps.filter((x0) => x0.done).length}/${p0.steps.length} шагов${p0.due ? ", срок " + F(M(p0.due), { day: "numeric", month: "short" }) : ""}`
+                }`,
+            )
+            .join("; "),
+      );
+    const ownDays = days.filter((d) => U.days[j(d)] && Array.isArray(U.days[j(d)].plan)).map((d) => F(d, { weekday: "short", day: "numeric" }));
+    ownDays.length && lines.push(`Дни с отдельным планом: ${ownDays.join(", ")}`);
     const k0 = j(days[0]),
       k6 = j(days[6]),
       hws = Object.values(U.hw).filter((x) => x && x.date >= k0 && x.date <= k6),
@@ -1472,7 +1708,7 @@
       let left;
       if (d0.bad) left = bt().minimum.filter((m) => !(d0.min && d0.min[m.id])).length;
       else
-        left = bt().habits.reduce((a, h) => a + Math.max(0, (h.t[wd] || 0) - ((d0.habits && d0.habits[h.id]) || 0)), 0);
+        left = bt().habits.reduce((a, h) => a + Math.max(0, hT(h, j(now)) - ((d0.habits && d0.habits[h.id]) || 0)), 0);
       if (left === lastBadge) return;
       lastBadge = left;
       left > 0 ? navigator.setAppBadge(left).catch(() => {}) : navigator.clearAppBadge && navigator.clearAppBadge().catch(() => {});
@@ -1556,7 +1792,8 @@
   }
   const backLink = () => '<button class="link back" data-a="tab" data-v="more">← Ещё</button>';
   // ===================== Новые экраны и окна =====================
-  const DAY_ACC = ["понедельник", "вторник", "среду", "четверг", "пятницу", "субботу", "воскресенье"];
+  const DAY_ACC = ["понедельник", "вторник", "среду", "четверг", "пятницу", "субботу", "воскресенье"],
+    DAY_GEN = ["понедельника", "вторника", "среды", "четверга", "пятницы", "субботы", "воскресенья"];
   function hwSubnav() {
     return `<div class="subnav" role="group" aria-label="Раздел">${[
       ["diary", "Домашка"],
@@ -1567,7 +1804,9 @@
   }
   function schedView() {
     const wd = tt.schedDay,
-      d0 = Qt(0)[wd],
+      wk = tt.schedWeek || 0,
+      days0 = Qt(wk),
+      d0 = days0[wd],
       key = j(d0),
       isToday = key === j(),
       P0 = planItems(key),
@@ -1591,15 +1830,29 @@
       });
     });
     rows += `<div class="tl-row"><div class="tl-t mono">${mh(P0.sleep)}</div><div class="blk plain"><div class="bt">Сон</div></div></div>`;
+    const dayName = isToday ? "сегодня" : O(F(d0, { day: "numeric", month: "long" })),
+      rk = "reset:" + key;
     return `<section class="pagehead"><h1 class="display">Расписание</h1><p class="muted">Нажми ▶ у дела, и запустится таймер нужной темы.</p></section>${hwSubnav()}
+    <div class="weeknav sched-wk"><button class="btn" data-a="sched-wk" data-v="-1" aria-label="Неделя раньше" ${wk <= 0 ? "disabled" : ""}>‹</button><div class="range">${O(Zt(days0))}${
+      ta(wk) ? ` <span class="muted small">· ${ta(wk)}</span>` : ""
+    }</div><button class="btn" data-a="sched-wk" data-v="1" aria-label="Неделя позже" ${wk >= 8 ? "disabled" : ""}>›</button></div>
     <div class="seg day-seg" role="group" aria-label="День недели">${u
-      .map((n0, i0) => `<button class="${i0 === wd ? "on" : ""} ${i0 === E(new Date()) ? "tday" : ""}" data-a="sched-day" data-v="${i0}" aria-pressed="${i0 === wd}">${n0}</button>`)
+      .map((n0, i0) => {
+        const own0 = U.days[j(days0[i0])] && Array.isArray(U.days[j(days0[i0])].plan);
+        return `<button class="${i0 === wd ? "on" : ""} ${0 === wk && i0 === E(new Date()) ? "tday" : ""} ${own0 ? "own" : ""}" data-a="sched-day" data-v="${i0}" aria-pressed="${i0 === wd}">${n0}</button>`;
+      })
       .join("")}</div>
     <section class="card"><div class="card-h"><h2>${p[wd]}, ${O(F(d0, { day: "numeric", month: "long" }))}</h2><span class="muted small">дел на ${A(busy)}</span></div>
+    ${
+      P0.own
+        ? `<p class="hint top0 own-note">Этот день изменён отдельно, шаблон ${DAY_GEN[wd]} не тронут. <button class="link" data-a="sched-reset-day" data-key="${key}">${tt.confirm === rk ? "Нажми ещё раз — вернуть шаблон" : "Вернуть как в шаблоне"}</button></p>`
+        : ""
+    }
     ${P0.bad ? '<p class="hint top0" style="margin-bottom:8px">Плохой день: дела отложены, считается минимум.</p>' : ""}
     <div class="tl">${rows}</div>${P0.over ? `<p class="hint bad-t">До сна не влезает ${A(P0.over)}.</p>` : ""}</section>
-    <div class="btn-row" style="margin-top:0"><button class="btn primary" data-a="sched-edit" data-v="${wd}">Изменить ${DAY_ACC[wd]}</button><button class="btn" data-a="tt-open">Уроки</button></div>
-    <p class="hint">Отдых и «свободно» — запас: если что-то затянулось, они сжимаются первыми. Накануне контрольной или олимпиады блок подготовки появляется сам.</p>`;
+    <div class="btn-row" style="margin-top:0"><button class="btn primary" data-a="sched-edit-day" data-key="${key}">Изменить только ${dayName}</button><button class="btn" data-a="sched-edit" data-v="${wd}">Шаблон: ${DAY_ACC[wd]}</button><button class="btn" data-a="tt-open">Уроки</button></div>
+    <p class="hint"><b>Изменить только ${dayName}</b> — один день: созвон, рывок перед дедлайном, поездка. Шаблон и другие недели не меняются. <b>Шаблон</b> — то, что повторяется каждую неделю.</p>
+    <p class="hint">Отдых и «свободно» — запас: если что-то затянулось, они сжимаются первыми. «Встреча» стоит на своём времени, остальное её обходит. Накануне контрольной или олимпиады блок подготовки появляется сам.</p>`;
   }
   function schedModal() {
     const dr = tt.schedDraft,
@@ -1607,10 +1860,19 @@
         `<option value="" ${cur ? "" : "selected"}>Отдых, без таймера</option>${ALLCATS.filter((c0) => !c0.archived || c0.id === cur)
           .map((c0) => `<option value="${O(c0.id)}" ${c0.id === cur ? "selected" : ""}>${O(c0.name)}</option>`)
           .join("")}<option value="debt" ${"debt" === cur ? "selected" : ""}>Окно долгов</option>`;
+    const one = !!dr.key,
+      dd0 = one ? M(dr.key) : null;
     return `<div class="modal-back" data-a="sched-close-bg"><div class="modal wide-modal" role="dialog" aria-modal="true" aria-labelledby="sc-h">
-    <div class="modal-h"><h2 id="sc-h" class="display">Расписание: ${DAY_ACC[dr.d]}</h2><button class="icon-btn" data-a="sched-close" aria-label="Закрыть">×</button></div>
-    <div class="sc-times"><label>Подъём<input id="sd-wake" class="mono" type="text" inputmode="numeric" maxlength="5" placeholder="07:00" data-input="sd-wake" value="${O(dr.wake)}"></label><label>Сон<input id="sd-sleep" class="mono" type="text" inputmode="numeric" maxlength="5" placeholder="23:00" data-input="sd-sleep" value="${O(dr.sleep)}"></label></div>
-    <p class="hint">Время сна общее для всех дней. «По результату» — дело засчитывается, когда сделано, даже если быстрее. «По времени» — нужно отсидеть минуты.</p>
+    <div class="modal-h"><h2 id="sc-h" class="display">${
+      one ? `Только ${O(dr.key === j() ? "сегодня" : F(dd0, { day: "numeric", month: "long" }))}` : `Шаблон: ${O(p[dr.d].toLowerCase())}`
+    }</h2><button class="icon-btn" data-a="sched-close" aria-label="Закрыть">×</button></div>
+    ${
+      one
+        ? `<p class="hint top0">Меняется только ${O(F(dd0, { weekday: "long", day: "numeric", month: "long" }))}. Шаблон ${DAY_GEN[dr.d]} и другие недели остаются как были.</p>`
+        : `<div class="sc-times"><label>Подъём<input id="sd-wake" class="mono" type="text" inputmode="numeric" maxlength="5" placeholder="07:00" data-input="sd-wake" value="${O(dr.wake)}"></label><label>Сон<input id="sd-sleep" class="mono" type="text" inputmode="numeric" maxlength="5" placeholder="23:00" data-input="sd-sleep" value="${O(dr.sleep)}"></label></div>
+    <p class="hint">Шаблон повторяется каждую неделю. Время сна общее для всех дней.</p>`
+    }
+    <p class="hint">«По результату» — дело засчитывается, когда сделано, даже если быстрее. «По времени» — нужно отсидеть минуты. «Встреча» — время закреплено: если что-то затянется, встреча не сдвинется, остальное переедет после неё.</p>
     <div class="sc-list">${dr.blocks
       .map(
         (b0, i0) => `<div class="sc-row">
@@ -1619,17 +1881,37 @@
       <input id="sb-title-${i0}" class="sc-title" data-input="sb-title" data-i="${i0}" value="${O(b0.title)}" aria-label="Что делать" autocomplete="off">
       <select id="sb-cat-${i0}" data-input="sb-cat" data-i="${i0}" aria-label="Тема">${catOpts(b0.cat)}</select>
       <select id="sb-mode-${i0}" data-input="sb-mode" data-i="${i0}" aria-label="Как засчитывать" ${b0.cat && "debt" !== b0.cat ? "" : "disabled"}><option value="time" ${"res" !== b0.mode ? "selected" : ""}>по времени</option><option value="res" ${"res" === b0.mode ? "selected" : ""}>по результату</option></select>
+      <button class="pin-t ${b0.fixed ? "on" : ""}" data-a="sb-pin" data-i="${i0}" aria-pressed="${!!b0.fixed}" title="Встреча: время не сдвигается">${w.pin}<span>встреча</span></button>
       <button class="x" data-a="sb-del" data-i="${i0}" aria-label="Удалить">×</button></div>`,
       )
       .join("")}</div>
     <div><button class="btn small" data-a="sb-add">+ Дело</button></div>
-    <h3>Скопировать на другие дни</h3>
+    ${
+      one
+        ? ""
+        : `<h3>Скопировать на другие дни</h3>
     <div class="chips">${u
       .map((n0, i0) =>
         i0 === dr.d ? "" : `<button class="chip ${dr.copyTo.includes(i0) ? "on" : ""}" data-a="sd-copy" data-v="${i0}" aria-pressed="${dr.copyTo.includes(i0)}">${n0}</button>`,
       )
-      .join("")}</div>
+      .join("")}</div>`
+    }
     <div class="modal-f"><button class="btn ghost" data-a="sched-close">Отмена</button><button class="btn primary" data-a="sched-save">Сохранить</button></div>
+  </div></div>`;
+  }
+  function projModal() {
+    const dr = tt.projDraft;
+    return `<div class="modal-back" data-a="proj-close-bg"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="pj-h">
+    <div class="modal-h"><h2 id="pj-h" class="display">${dr.id ? "Проект" : "Новый проект"}</h2><button class="icon-btn" data-a="proj-close" aria-label="Закрыть">×</button></div>
+    <p class="hint top0">Проект — разовое дело со сроком: не привычка, а то, что надо один раз сделать (ТЮФ, доклад, подготовка к олимпиаде). Шаги отмечаются на главной. Время под проект ставь в расписание через «Изменить только этот день».</p>
+    <label class="pj-l">Название<input id="pj-title" data-input="pj-title" value="${O(dr.title)}" placeholder="Например: ТЮФ — презентация к пятнице" autocomplete="off"></label>
+    <div class="sc-times"><label>Срок<input id="pj-due" type="date" data-input="pj-due" value="${O(dr.due)}"></label><label>Тема таймера<select id="pj-cat" data-input="pj-cat"><option value="" ${dr.cat ? "" : "selected"}>без таймера</option>${ALLCATS.filter((c0) => !c0.archived || c0.id === dr.cat)
+      .map((c0) => `<option value="${O(c0.id)}" ${c0.id === dr.cat ? "selected" : ""}>${O(c0.name)}</option>`)
+      .join("")}</select></label></div>
+    <label class="pj-l">Шаги — по одному на строку<textarea id="pj-steps" rows="6" data-input="pj-steps" placeholder="Прочитать статьи&#10;Отредактировать презентацию">${O(dr.stepsText)}</textarea></label>
+    <div class="modal-f">${
+      dr.id ? `<button class="btn ghost" data-a="proj-del">${tt.confirm === "pdel:" + dr.id ? "Точно удалить?" : "Удалить"}</button>` : ""
+    }<button class="btn ghost" data-a="proj-close">Отмена</button><button class="btn primary" data-a="proj-save">Сохранить</button></div>
   </div></div>`;
   }
   function catsModal() {
@@ -1738,7 +2020,14 @@
         ["tab", "goals", w.goals, "Цели и события", up ? `впереди: ${up}` : "олимпиады, контрольные, задачи"],
         ["tab", "words", w.words, "Слова", dueT ? `на сегодня: ${dueT}` : `карточек: ${Object.keys(U.cards).length}`],
         ["tab", "notes", w.notes, "Заметки", `заметок: ${Object.values(U.notes).filter(Boolean).length}`],
-        ["go-sched", "", w.hw, "Расписание дня", "шаблоны дней, время сна"],
+        ["go-sched", "", w.hw, "Расписание дня", "шаблоны дней, отдельные дни, время сна"],
+        [
+          "proj-new",
+          "",
+          w.flag,
+          "Новый проект",
+          (bt().projects.filter((p0) => !p0.done).length ? `активных: ${bt().projects.filter((p0) => !p0.done).length} · ` : "") + "разовое дело со сроком и шагами",
+        ],
         ["cats-open", "", w.timer, "Темы таймера", `${t.length} тем, цели на неделю`],
         ["settings-open", "", w.gear, "Настройки", "привычки, минимум, игры, напоминания"],
       ];
@@ -1753,12 +2042,12 @@
           s = E(a),
           n = bt(),
           o = U.days[e] || ft(e),
-          i = n.habits.filter((t) => (t.t[s] || 0) > 0),
+          i = n.habits.filter((t) => hT(t, e) > 0),
           bad = !!o.bad,
-          r = bad ? n.minimum.length : i.reduce((t, a) => t + a.t[s], 0),
+          r = bad ? n.minimum.length : i.reduce((t, a) => t + hT(a, e), 0),
           c = bad
             ? n.minimum.filter((m) => o.min && o.min[m.id]).length
-            : i.reduce((t, a) => t + Math.min((o.habits && o.habits[a.id]) || 0, a.t[s]), 0),
+            : i.reduce((t, a) => t + Math.min((o.habits && o.habits[a.id]) || 0, hT(a, e)), 0),
           d = r ? c / r : 0,
           u = gt(),
           p = o.gamesMin || 0,
@@ -1776,13 +2065,13 @@
           return a.length
             ? `<div class="evstrip" aria-label="Ближайшие события">${a.map((t) => `<button class="evchip" style="--c:${l(t.type).color}" data-a="tab" data-v="goals" data-sub="events"><b>${O(G(P(t.date)))}</b><span>${O(t.title)}</span></button>`).join("")}</div>`
             : "";
-        })()}\n    ${nowArea()}\n    ${nextArea()}\n    ${badArea(o)}\n    ${(function (t, a, e) {
+        })()}\n    ${nowArea()}\n    ${nextArea()}\n    ${projectsArea()}\n    ${badArea(o)}\n    ${(function (t, a, e) {
           if (bad) return "";
           if (!t.length)
             return '<section class="card"><div class="card-h"><h2>Привычки</h2><button class="link" data-a="settings-open">Изменить</button></div><p class="hint">На сегодня привычек нет. Добавить их можно в настройках.</p></section>';
           const s = t
               .map((t) => {
-                const s = t.t[e],
+                const s = hT(t, e),
                   n = Math.min((a.habits && a.habits[t.id]) || 0, s),
                   o = n >= s,
                   i =
@@ -1794,7 +2083,7 @@
               .join(""),
             n = Xt();
           return `<section class="card"><div class="card-h"><h2>Привычки на сегодня</h2><button class="link" data-a="settings-open">Изменить</button></div><ul class="habits">${s}</ul>${n >= 2 ? `<p class="hint">Все привычки ${n} ${C(n, "день", "дня", "дней")} подряд.</p>` : ""}</section>`;
-        })(i, o, s)}\n    ${todoArea(o)}${wordsDueArea()}\n    ${(function () {
+        })(i, o, e)}\n    ${todoArea(o)}${wordsDueArea()}\n    ${(function () {
           const t = mt();
           if (t.hidden) return "";
           const a = [
@@ -2329,7 +2618,7 @@
               `<tr><th scope="row">${O(t.name)}</th>${a
                 .map((a) => {
                   const s = j(a),
-                    n = t.t[E(a)] || 0;
+                    n = hT(t, s);
                   if (!n) return '<td><span class="c na" title="не по плану">·</span></td>';
                   if (s > e) return '<td><span class="c fut"></span></td>';
                   const o = Math.min((U.days[s] && U.days[s].habits && U.days[s].habits[t.id]) || 0, n);
@@ -2506,6 +2795,7 @@
         tt.ttOpen && tt.ttDraft && (p += na(ua)),
         tt.catsOpen && tt.catsDraft && (p += na(catsModal)),
         tt.schedOpen && tt.schedDraft && (p += na(schedModal)),
+        tt.projOpen && tt.projDraft && (p += na(projModal)),
         tt.focus && c && (p += na(focusOverlay)));
     } else p += '<p class="loading">Загружаю твои данные…</p>';
     (ba.classList.toggle("wide", "hw" === Z && d),
@@ -2854,10 +3144,22 @@
           title: (b0.title || "").trim() || "Дело",
           cat: b0.cat || null,
           mode: b0.cat && "debt" !== b0.cat && "res" === b0.mode ? "res" : "time",
+          fixed: !!b0.fixed,
         }))
         .sort((x0, y0) => hm(x0.start) - hm(y0.start)),
       sched = N(st2.sched),
-      times = N(st2.times);
+      times = N(st2.times),
+      bad1 = dr.blocks.filter((b0) => !okT(b0.start)).length;
+    bad1 && setTimeout(() => Ea(`Не понял время у ${bad1} ${C(bad1, "дела", "дел", "дел")} — пиши как 17:30`), 300);
+    if (dr.key) {
+      // План только на эту дату: шаблон не трогаем
+      tt.schedOpen = !1;
+      Tt(dr.key, (d) => {
+        d.plan = clean;
+      });
+      Ea(`Сохранено только на ${dr.key === j() ? "сегодня" : F(M(dr.key), { day: "numeric", month: "long" })}`);
+      return;
+    }
     sched["d" + dr.d] = clean;
     dr.copyTo.forEach((d0) => {
       sched["d" + d0] = clean.map((b0) => Object.assign({}, b0, { id: T() }));
@@ -2865,11 +3167,43 @@
     });
     okT(dr.wake) && (times.wake[dr.d] = fixT(dr.wake));
     okT(dr.sleep) && (times.sleep = fixT(dr.sleep));
-    const bad0 = dr.blocks.filter((b0) => !okT(b0.start)).length;
-    bad0 && setTimeout(() => Ea(`Не понял время у ${bad0} ${C(bad0, "дела", "дел", "дел")} — пиши как 17:30`), 300);
     tt.schedOpen = !1;
     Lt({ settings: Object.assign({}, N(st2), { sched, times }) });
     Ea(dr.copyTo.length ? `Сохранено и скопировано: ${dr.copyTo.length} ${C(dr.copyTo.length, "день", "дня", "дней")}` : "Расписание сохранено");
+  }
+  function projUpdate(fn, quiet) {
+    const st2 = bt();
+    Lt({ settings: Object.assign({}, N(st2), { projects: fn(N(st2.projects)) }) }, !quiet);
+  }
+  function projSave() {
+    const dr = tt.projDraft,
+      title = (dr.title || "").trim();
+    if (!title) return void Ea("Напиши, как называется проект");
+    const old = dr.id ? bt().projects.find((x0) => x0.id === dr.id) : null,
+      steps = String(dr.stepsText || "")
+        .split(/\n+/)
+        .map((l0) => l0.replace(/^\s*(?:[-–—•*]|\d+[.)])\s*/, "").trim())
+        .filter(Boolean)
+        .map((t0) => {
+          const o0 = old && old.steps.find((x0) => x0.t === t0);
+          return { id: o0 ? o0.id : T(), t: t0, done: !!(o0 && o0.done) };
+        }),
+      p0 = {
+        id: dr.id || "p" + T(),
+        title,
+        cat: dr.cat || null,
+        due: /^\d{4}-\d{2}-\d{2}$/.test(dr.due || "") ? dr.due : "",
+        steps,
+        done: !!(old && old.done),
+        created: (old && old.created) || Date.now(),
+        doneAt: (old && old.doneAt) || 0,
+      };
+    tt.projOpen = !1;
+    projUpdate((ps) => {
+      const ix = ps.findIndex((x0) => x0.id === p0.id);
+      return ix >= 0 ? ((ps[ix] = p0), ps) : ps.concat([p0]);
+    });
+    Ea(dr.id ? "Проект сохранён" : "Проект добавлен на главную");
   }
   function catsSave() {
     const cats = tt.catsDraft.map((c0) => {
@@ -2995,7 +3329,7 @@
             !(function (t) {
               const a = bt().habits.find((a) => a.id === t);
               if (!a) return;
-              const e = a.t[E(new Date())] || 1;
+              const e = hT(a, j()) || 1;
               Tt(j(), (a) => {
                 const s = a.habits[t] || 0;
                 a.habits[t] = s >= e ? 0 : s + 1;
@@ -3358,7 +3692,7 @@
             ((tt.hwView = n), $a());
             break;
           case "go-sched":
-            ((tt.settingsOpen = !1), (tt.hwView = "sched"), (tt.schedDay = E(new Date())), Fa("hw"));
+            ((tt.settingsOpen = !1), (tt.hwView = "sched"), (tt.schedDay = E(new Date())), (tt.schedWeek = 0), Fa("hw"));
             break;
           case "go-view":
             Fa(n);
@@ -3399,6 +3733,92 @@
           case "sched-save":
             schedSave();
             break;
+          case "sched-edit-day": {
+            const key = e.dataset.key,
+              dd0 = U.days[key],
+              st2 = bt(),
+              d0 = E(M(key));
+            ((tt.schedDraft = {
+              key,
+              d: d0,
+              blocks: N(dd0 && Array.isArray(dd0.plan) ? normBlocks(dd0.plan) : st2.sched["d" + d0]),
+              wake: st2.times.wake[d0],
+              sleep: st2.times.sleep,
+              copyTo: [],
+            }),
+              (tt.settingsOpen = !1),
+              (tt.schedOpen = !0),
+              $a());
+            break;
+          }
+          case "sched-reset-day": {
+            const key = e.dataset.key;
+            Oa("reset:" + key) &&
+              (Tt(key, (d) => {
+                delete d.plan;
+              }),
+              Ea("Вернул как в шаблоне"));
+            break;
+          }
+          case "sched-wk":
+            ((tt.schedWeek = Math.max(0, Math.min(8, (tt.schedWeek || 0) + Number(n)))), $a());
+            break;
+          case "sb-pin": {
+            const b0 = tt.schedDraft && tt.schedDraft.blocks[Number(e.dataset.i)];
+            b0 && ((b0.fixed = !b0.fixed), $a());
+            break;
+          }
+          case "proj-new":
+            ((tt.projDraft = { id: null, title: "", due: j(D(new Date(), 7)), cat: "", stepsText: "" }),
+              (tt.settingsOpen = !1),
+              (tt.projOpen = !0),
+              $a());
+            {
+              const el0 = k("pj-title");
+              el0 && el0.focus();
+            }
+            break;
+          case "proj-edit": {
+            const p0 = bt().projects.find((x0) => x0.id === i);
+            p0 &&
+              ((tt.projDraft = { id: p0.id, title: p0.title, due: p0.due, cat: p0.cat || "", stepsText: p0.steps.map((x0) => x0.t).join("\n") }),
+              (tt.projOpen = !0),
+              $a());
+            break;
+          }
+          case "proj-close":
+          case "proj-close-bg":
+            ((tt.projOpen = !1), $a());
+            break;
+          case "proj-save":
+            projSave();
+            break;
+          case "proj-del": {
+            const id0 = tt.projDraft && tt.projDraft.id;
+            id0 &&
+              Oa("pdel:" + id0) &&
+              ((tt.projOpen = !1), projUpdate((ps) => ps.filter((x0) => x0.id !== id0)), Ea("Проект удалён"));
+            break;
+          }
+          case "proj-step":
+            projUpdate((ps) => {
+              const p0 = ps.find((x0) => x0.id === i),
+                s0 = p0 && p0.steps.find((x1) => x1.id === n);
+              return (s0 && (s0.done = !s0.done), ps);
+            });
+            break;
+          case "proj-finish":
+            (projUpdate((ps) => {
+              const p0 = ps.find((x0) => x0.id === i);
+              return (p0 && ((p0.done = !0), (p0.doneAt = Date.now())), ps);
+            }),
+              Ea("Проект закрыт"));
+            break;
+          case "proj-timer": {
+            const p0 = bt().projects.find((x0) => x0.id === i);
+            p0 && p0.cat && Nt(p0.cat, "sw");
+            break;
+          }
           case "cats-open":
             ((tt.catsDraft = N(bt().cats)), (tt.settingsOpen = !1), (tt.catsOpen = !0), $a());
             break;
@@ -3674,6 +4094,18 @@
           case "sd-sleep":
             tt.schedDraft.sleep = a.value;
             break;
+          case "pj-title":
+            tt.projDraft && (tt.projDraft.title = a.value);
+            break;
+          case "pj-due":
+            tt.projDraft && (tt.projDraft.due = a.value);
+            break;
+          case "pj-cat":
+            tt.projDraft && (tt.projDraft.cat = a.value);
+            break;
+          case "pj-steps":
+            tt.projDraft && (tt.projDraft.stepsText = a.value);
+            break;
           case "hw-text":
             Gt(a, "text");
             break;
@@ -3740,6 +4172,8 @@
           ? ((tt.focus = !1), $a())
           : tt.catsOpen
             ? ((tt.catsOpen = !1), $a())
+            : tt.projOpen
+              ? ((tt.projOpen = !1), $a())
             : tt.schedOpen
               ? ((tt.schedOpen = !1), $a())
               : tt.ttOpen
