@@ -9,6 +9,7 @@
       { id: "ger", name: "Немецкий", short: "Немецкий", color: "#b7dd4a", goal: 2.5 },
       { id: "eng", name: "Английский", short: "Английский", color: "#ff6fae", goal: 1 },
       { id: "read", name: "Чтение", short: "Чтение", color: "#e3b341", goal: 3.5 },
+      { id: "sport", name: "Спорт", short: "Спорт", color: "#3aa3a3", goal: 0, nodebt: !0 },
       { id: "prog", name: "Программирование", short: "Код", color: "#6cc644", goal: 0, archived: !0 },
       { id: "other", name: "Другое", short: "Другое", color: "#8a8fa3", goal: 0 },
     ],
@@ -53,21 +54,21 @@
     ],
     l = (t) => i.find((a) => a.id === t) || i[3],
     PLAN_HABITS = [
-      { id: "hw", name: "Домашка", t: [1, 1, 1, 1, 1, 0, 1] },
-      { id: "kruzhok", name: "Урок «Кружка»", t: [1, 0, 1, 0, 0, 1, 3] },
-      { id: "philo", name: "Логика и философия", t: [1, 0, 0, 0, 0, 1, 1] },
-      { id: "ger", name: "Немецкий", t: [1, 1, 1, 1, 0, 1, 1] },
-      { id: "eng", name: "Английский", t: [0, 0, 0, 0, 0, 0, 1] },
-      { id: "read", name: "Чтение 30 мин", t: [1, 1, 1, 1, 1, 1, 1] },
-      { id: "gym", name: "Зал", t: [0, 1, 0, 1, 0, 0, 0] },
+      { id: "hw", name: "Домашка", t: [1, 1, 1, 1, 1, 0, 1], cat: "hw" },
+      { id: "kruzhok", name: "Урок «Кружка»", t: [1, 0, 1, 0, 0, 1, 3], cat: "phys" },
+      { id: "philo", name: "Логика и философия", t: [1, 0, 0, 0, 0, 1, 1], cat: "philo" },
+      { id: "ger", name: "Немецкий", t: [1, 1, 1, 1, 0, 1, 1], cat: "ger" },
+      { id: "eng", name: "Английский", t: [0, 0, 0, 0, 0, 0, 1], cat: "eng" },
+      { id: "read", name: "Чтение 30 мин", t: [1, 1, 1, 1, 1, 1, 1], cat: "read" },
+      { id: "gym", name: "Зал", t: [0, 1, 0, 1, 0, 0, 0], cat: "sport" },
       { id: "report", name: "Отчёт и взвешивание", t: [0, 0, 0, 0, 0, 0, 1] },
       { id: "sleep", name: "Лёг спать вовремя (в сб — до 01:00)", t: [1, 1, 1, 1, 1, 1, 1] },
     ],
     DEFAULT_MIN = [
-      { id: "m1", name: "Домашка на завтра" },
-      { id: "m2", name: "1 урок «Кружка» или 30 мин физики" },
-      { id: "m3", name: "10 минут немецкого" },
-      { id: "m4", name: "Лечь до 23:00" },
+      { id: "m1", name: "Домашка на завтра", cat: "hw" },
+      { id: "m2", name: "1 урок «Кружка» или 30 мин физики", cat: "phys" },
+      { id: "m3", name: "10 минут немецкого", cat: "ger" },
+      { id: "m4", name: "Лечь вовремя" },
     ],
     // Шаблон дня: start "ЧЧ:ММ", dur в минутах, cat — тема таймера (null — отдых без таймера, "debt" — окно долгов),
     // mode: "res" — по результату (быстрее можно), "time" — по времени. fixed — встреча: время не сдвигается.
@@ -93,7 +94,7 @@
       d1: [
         SB("tua", "17:00", 30, "Обед и отдых"),
         SB("tub", "17:30", 90, "Домашка", "hw", "res"),
-        SB("tud", "19:00", 180, "Зал · сборы, дорога, тренировка, домой"),
+        Object.assign(SB("tud", "19:00", 180, "Зал · сборы, дорога, тренировка, домой", "sport", "res"), { kit: "gymA" }),
         SB("tue", "22:00", 15, "Немецкий · карточки", "ger", "res"),
         SB("tuf", "22:15", 30, "Чтение", "read"),
         SB("tug", "22:45", 15, "Подготовка ко сну"),
@@ -111,7 +112,7 @@
       d3: [
         SB("tha", "17:00", 30, "Обед и отдых"),
         SB("thb", "17:30", 90, "Домашка", "hw", "res"),
-        SB("thd", "19:00", 180, "Зал · сборы, дорога, тренировка, домой"),
+        Object.assign(SB("thd", "19:00", 180, "Зал · сборы, дорога, тренировка, домой", "sport", "res"), { kit: "gymB" }),
         SB("the", "22:00", 15, "Немецкий · карточки", "ger", "res"),
         SB("thf", "22:15", 30, "Чтение", "read"),
         SB("thg", "22:45", 15, "Подготовка ко сну"),
@@ -124,14 +125,18 @@
         SB("frh", "22:00", 30, "Чтение", "read"),
         SB("fri", "22:30", 30, "Подготовка ко сну"),
       ],
+      // суббота: неделя А — зал и бассейн после школы, неделя Б — обычный вечер (эта неделя, 23–29.11, — А)
       d5: [
         SB("saa", "17:00", 30, "Обед и отдых"),
-        SB("sab", "17:30", 60, "Кружок · 1 урок", "phys", "res"),
-        SB("sac", "18:30", 15, "Перерыв"),
-        SB("saf", "18:45", 45, "Логика и философия", "philo"),
-        SB("sai", "19:30", 30, "Немецкий · разговор", "ger", "res"),
-        SB("saj", "20:00", 30, "Чтение", "read"),
-        SB("sal", "20:30", 240, "Игры и отдых · до 00:30"),
+        Object.assign(SB("sab", "17:30", 60, "Кружок · 1 урок", "phys", "res"), { wk: "b", queue: "kruzhok" }),
+        Object.assign(SB("sac", "18:30", 15, "Перерыв"), { wk: "b" }),
+        Object.assign(SB("saf", "18:45", 45, "Логика и философия", "philo"), { wk: "b" }),
+        Object.assign(SB("sai", "19:30", 30, "Немецкий · разговор", "ger", "res"), { wk: "b" }),
+        Object.assign(SB("saj", "20:00", 30, "Чтение", "read"), { wk: "b" }),
+        Object.assign(SB("sal", "20:30", 240, "Игры и отдых · до 00:30"), { wk: "b" }),
+        Object.assign(SB("pla", "17:30", 180, "Зал и бассейн · с дорогой, дома около 20:30", "sport", "res"), { wk: "a", kit: "gymC" }),
+        Object.assign(SB("plc", "20:30", 30, "Ужин и отдых"), { wk: "a" }),
+        Object.assign(SB("pld", "21:00", 210, "Игры и отдых · до 00:30"), { wk: "a" }),
       ],
       d6: [
         SB("sua", "10:00", 30, "Завтрак, взвешивание"),
@@ -296,7 +301,7 @@
       { id: "gymB", title: "Зал · тренировка B", items: ["Разминка, 8–10 мин", "Хакк-присед (или жим ногами) — 3 × 10–12", "Разгибание ног сидя — 2 × 12–15", "Наклонный жим в тренажёре — 3 × 8–12", "Горизонтальная тяга — 3 × 10–12", "Гиперэкстензия — 3 × 12–15", "Обратная «бабочка» — 2 × 15", "Бицепс в тренажёре + трицепс на блоке — 2 × 12 + 2 × 12", "Подъём ног на «капитанском стуле» — 3 × 8–12", "Ходьба в горку или эллипс — 15–20 мин"] },
       { id: "gymC", title: "Зал + бассейн", items: ["Гравитрон — 3 × 6–8", "«Бабочка» — 3 × 12–15", "Икры в тренажёре — 3 × 15", "Отведение и приведение бёдер — 2 × 15 каждое", "Бассейн: разминка 200–300 м", "Бассейн: 8–10 × 50 м быстро кролем, отдых 20–30 с", "Бассейн: заминка 200 м"] },
     ],
-    DEFAULT_TIMES = { wake: ["07:00", "07:00", "07:00", "07:00", "07:00", "07:00", "10:00"], sleep: "23:00" },
+    DEFAULT_TIMES = { wake: ["07:00", "07:00", "07:00", "07:00", "07:00", "07:00", "10:00"], sleep: "23:00", sleepD: ["23:00", "23:00", "23:00", "23:00", "23:00", "01:00", "23:00"] },
     r = {
       habits: PLAN_HABITS,
       gameLimit: [0, 0, 0, 0, 0, 240, 60],
@@ -349,8 +354,8 @@
       ["books", "Книги"],
       ["more", "Ещё"],
     ],
-    MORE_VIEWS = ["more", "week", "goals", "words", "notes", "queue", "kits"],
-    m = b.map((t) => t[0]).concat(["week", "goals", "words", "notes", "queue", "kits"]),
+    MORE_VIEWS = ["more", "week", "goals", "words", "notes", "queue", "kits", "lego"],
+    m = b.map((t) => t[0]).concat(["week", "goals", "words", "notes", "queue", "kits", "lego"]),
     h = ["days", "hw", "notes", "books", "events", "goals", "problems", "weeks", "cards"],
     g = "Блокнот",
     f = "bloknot-v1",
@@ -380,6 +385,7 @@
       gear: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
       check: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
       flag: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4h11l-2 4 2 4H5"/></svg>',
+      lego: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="10.5" width="17" height="9" rx="1.5"/><path d="M7 10.5V8.5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2M13 10.5V8.5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2"/></svg>',
       pin: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6l-1 6 4 4H6l4-4zM12 13v8"/></svg>',
       google:
         '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.5 12.2c0-.8-.1-1.5-.2-2.2H12v4.2h5.9a5 5 0 0 1-2.2 3.3v2.7h3.6c2-1.9 3.2-4.7 3.2-8z"/><path fill="#34A853" d="M12 23c3 0 5.5-1 7.3-2.7l-3.6-2.7c-1 .7-2.2 1.1-3.7 1.1-2.9 0-5.3-1.9-6.2-4.5H2.1v2.8A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.8 14.2a6.6 6.6 0 0 1 0-4.3V7.1H2.1a11 11 0 0 0 0 9.9z"/><path fill="#EA4335" d="M12 5.4c1.6 0 3.1.6 4.2 1.7l3.2-3.2A11 11 0 0 0 2.1 7.1l3.7 2.8C6.7 7.3 9.1 5.4 12 5.4z"/></svg>',
@@ -520,6 +526,10 @@
     projDraft: null,
     catsOpen: !1,
     catsDraft: null,
+    legoOpen: !1,
+    legoDraft: null,
+    placeOpen: !1,
+    placeDraft: null,
     focus: !1,
     moveFor: null,
     early: null,
@@ -577,6 +587,11 @@
         color: /^#[0-9a-f]{6}$/i.test(c.color || "") ? c.color : "#8a8fa3",
         goal: Math.max(0, Math.min(80, parseFloat(c.goal) || 0)),
         archived: !!c.archived,
+        // кирпичики допа: что внутри (очередь или программа), как считать по умолчанию, материалы
+        content: c.content && /^(queue|kit)$/.test(c.content.type || "") && c.content.id ? { type: c.content.type, id: String(c.content.id) } : null,
+        mode: "res" === c.mode || "time" === c.mode ? c.mode : null,
+        notes: String(c.notes || ""),
+        nodebt: !!c.nodebt,
       });
     });
     return out;
@@ -595,6 +610,8 @@
         fixed: !!b.fixed,
         kit: b.kit || null,
         queue: b.queue || null,
+        wk: "a" === b.wk || "b" === b.wk ? b.wk : null,
+        pid: b.pid || null,
       }))
       .sort((x, y) => hm(x.start) - hm(y.start));
   }
@@ -618,7 +635,7 @@
       if (!b) return b;
       const o = Object.assign({}, b);
       o.queue || "phys" !== o.cat || !/^Кружок/.test(o.title || "") || (o.queue = "kruzhok");
-      o.kit || o.cat || (/бассейн/i.test(o.title || "") ? (o.kit = "gymC") : /^Зал/.test(o.title || "") && (1 === wd ? (o.kit = "gymA") : 3 === wd && (o.kit = "gymB")));
+      o.kit || (o.cat && "sport" !== o.cat) || (/бассейн/i.test(o.title || "") ? (o.kit = "gymC") : /^Зал/.test(o.title || "") && (1 === wd ? (o.kit = "gymA") : 3 === wd && (o.kit = "gymB")));
       return o;
     });
   }
@@ -667,12 +684,16 @@
     e.minimum = (Array.isArray(e.minimum) && e.minimum.length ? e.minimum : DEFAULT_MIN).map((m, i) => ({
       id: String(m.id || "m" + i),
       name: String(m.name || "Дело"),
+      cat: m.cat || null,
     }));
+    e.habits = (Array.isArray(e.habits) ? e.habits : []).map((h0) => Object.assign({}, h0, { cat: (h0 && h0.cat) || null }));
     const tm = e.times && "object" == typeof e.times ? e.times : {};
     e.times = {
       wake: [0, 1, 2, 3, 4, 5, 6].map((d) => (Array.isArray(tm.wake) && tm.wake[d]) || DEFAULT_TIMES.wake[d]),
       sleep: tm.sleep || DEFAULT_TIMES.sleep,
+      sleepD: [0, 1, 2, 3, 4, 5, 6].map((d) => (Array.isArray(tm.sleepD) && /^\d{1,2}:\d{2}$/.test(tm.sleepD[d] || "") && tm.sleepD[d]) || tm.sleep || DEFAULT_TIMES.sleepD[d]),
     };
+    e.weekAnchor = /^\d{4}-\d{2}-\d{2}$/.test(e.weekAnchor || "") ? e.weekAnchor : "2026-11-23";
     e.reward = Object.assign({}, r.reward, e.reward || {});
     e.projects = normProjects(e.projects);
     e.queues = normQueues(e.queues);
@@ -795,7 +816,7 @@
       st2 = bt();
     Object.keys(SPRINT_2611.days).forEach((key) => {
       if (key < today || (U.days[key] && Array.isArray(U.days[key].plan))) return;
-      const plan = SPRINT_2611.days[key](st2.sched["d" + E(M(key))]),
+      const plan = SPRINT_2611.days[key](tplFor(key)),
         prepFor = SPRINT_2611.noPrep[key];
       Tt(
         key,
@@ -1058,12 +1079,73 @@
         d.plan = putInto(normBlocks(N(st2.sched.d6 || [])), SB("cu29h", "19:00", 15, "Немецкий · за среду", "ger", "res"), 1140);
       }, !1);
   }
+  // v7 «Конструктор» (26.11.2026): доп = тема + её кирпичики. Привычки привязаны к темам и считаются по расписанию,
+  // зал — тема «Спорт», сон по дням недели, суббота — недели А (зал и бассейн) и Б (обычная) вместо отдельных дней.
+  const V6_SAT = sigOf([
+    SB("", "17:00", 30, "Обед и отдых"), SB("", "17:30", 60, "Кружок · 1 урок", "phys"), SB("", "18:30", 15, "Перерыв"),
+    SB("", "18:45", 45, "Логика и философия", "philo"), SB("", "19:30", 30, "Немецкий · разговор", "ger"), SB("", "20:00", 30, "Чтение", "read"),
+    SB("", "20:30", 240, "Игры и отдых · до 00:30"),
+  ]);
+  const LEGO_DEFAULTS = {
+    phys: { content: { type: "queue", id: "kruzhok" }, mode: "res", notes: "Урок курса по порядку. Теория — в чате «Физика», практикум решаешь сам, подсказки по шагам. kruzhoktrack.ru" },
+    philo: { mode: "time", notes: "forall x: Calgary — главы и упражнения, которые назначил учитель в чате «Логика и аналитическая философия». Решаешь сам, сверяешься с ответами." },
+    ger: { mode: "res", notes: "Порция по программе курса в чате «Немецкий». Слова — в «Ещё → Слова»." },
+    eng: { mode: "time", notes: "Воскресенье 15:00 — репетитор онлайн. Письмо и грамматика C2 — в чате «Английский»." },
+    read: { mode: "time", notes: "Книга из вкладки «Книги», лист в читательском дневнике." },
+    sport: { content: { type: "kit", id: "gymA" }, mode: "res", notes: "Вт — тренировка A, чт — B, раз в 2 недели в субботу зал и бассейн. Программа — в чате «Похудение»." },
+    tyf: { mode: "time", notes: "Проекты к срокам команды. Пятница — опыты в школе." },
+    hw: { mode: "res", notes: "Сначала домашка, потом всё остальное. Задания — в «Дневнике»." },
+  };
+  function migrateV7(n) {
+    const HL = { hw: "hw", kruzhok: "phys", philo: "philo", ger: "ger", eng: "eng", read: "read", gym: "sport" };
+    n.habits = (Array.isArray(n.habits) ? n.habits : N(PLAN_HABITS)).map((h0) => (h0 && !h0.cat && HL[h0.id] ? Object.assign({}, h0, { cat: HL[h0.id] }) : h0));
+    const ML = { m1: "hw", m2: "phys", m3: "ger" };
+    n.minimum = (Array.isArray(n.minimum) && n.minimum.length ? n.minimum : N(DEFAULT_MIN)).map((m0) =>
+      !m0 ? m0 : Object.assign({}, m0, { cat: m0.cat || ML[m0.id] || null }, /^Лечь до 23/.test(m0.name || "") ? { name: "Лечь вовремя" } : {}),
+    );
+    n.cats = Array.isArray(n.cats) && n.cats.length ? n.cats : N(DEFAULT_CATS);
+    n.cats.some((c0) => c0 && "sport" === c0.id) || n.cats.splice(Math.max(0, n.cats.findIndex((c0) => c0 && "prog" === c0.id)), 0, N(DEFAULT_CATS.find((c0) => "sport" === c0.id)));
+    n.cats = n.cats.map((c0) => {
+      const L0 = c0 && LEGO_DEFAULTS[c0.id];
+      return L0
+        ? Object.assign({}, c0, { content: c0.content || L0.content || null, mode: c0.mode || L0.mode, notes: c0.notes || L0.notes, nodebt: "sport" === c0.id || !!c0.nodebt })
+        : c0;
+    });
+    const sc = n.sched && "object" == typeof n.sched ? n.sched : N(DEFAULT_SCHED);
+    for (let d0 = 0; d0 < 7; d0++)
+      Array.isArray(sc["d" + d0]) &&
+        (sc["d" + d0] = sc["d" + d0].map((b) => (b && !b.cat && /^Зал/.test(b.title || "") ? Object.assign({}, b, { cat: "sport", mode: "res" }) : b)));
+    sigOf(sc.d5) === V6_SAT && (sc.d5 = N(DEFAULT_SCHED.d5));
+    n.sched = sc;
+    const tm = n.times && "object" == typeof n.times ? N(n.times) : N(DEFAULT_TIMES);
+    Array.isArray(tm.sleepD) || (tm.sleepD = [0, 1, 2, 3, 4, 5, 6].map((d0) => (5 === d0 ? "01:00" : tm.sleep || "23:00")));
+    n.times = tm;
+    n.weekAnchor = n.weekAnchor || "2026-11-23";
+    n.planV = 7;
+    return n;
+  }
+  function applyV7Days() {
+    const today = j(),
+      // бассейн теперь в шаблоне субботы (неделя А) — только тогда отдельные субботы с бассейном больше не нужны
+      poolInTpl = (bt().sched.d5 || []).some((b) => "a" === b.wk && ("gymC" === b.kit || /бассейн/i.test(b.title || "")));
+    Object.keys(U.days).forEach((k0) => {
+      const dd = U.days[k0];
+      if (k0 < today || !dd || !Array.isArray(dd.plan)) return;
+      const ids = dd.plan.map((b) => b && b.id).sort().join(",");
+      // субботы с бассейном, которые ставил блокнот: теперь их делает неделя А в шаблоне субботы
+      if (poolInTpl && 5 === E(M(k0)) && "pla,plb,plc,pld" === ids && !(dd.blocks && Object.keys(dd.blocks).length)) return void Tt(k0, (d) => void delete d.plan, !1);
+      dd.plan.some((b) => b && !b.cat && /^Зал/.test(b.title || "")) &&
+        Tt(k0, (d) => {
+          d.plan = d.plan.map((b) => (b && !b.cat && /^Зал/.test(b.title || "") ? Object.assign({}, b, { cat: "sport", mode: "res" }) : b));
+        }, !1);
+    });
+  }
   function applyDayPlans(builders) {
     const today = j(),
       st2 = bt();
     Object.keys(builders).forEach((key) => {
       if (key < today || (U.days[key] && Array.isArray(U.days[key].plan))) return;
-      const plan = builders[key](st2.sched["d" + E(M(key))]);
+      const plan = builders[key](tplFor(key));
       Tt(key, (d) => {
         d.plan = plan;
       }, !1);
@@ -1074,25 +1156,27 @@
     if (migratedOnce || !vt() || !U.profile) return;
     const st0 = U.profile.settings,
       v0 = st0 && st0.planStart ? st0.planV || 0 : 0;
-    if (v0 >= 6) return;
+    if (v0 >= 7) return;
     migratedOnce = !0;
     let n = v0 >= 1 ? N(st0) : migrateSettings(st0 || {});
     v0 < 2 && (n = migrateV2(n));
     v0 < 3 && (n = migrateV3(n));
     v0 < 4 && (n = migrateV4(n));
     v0 < 5 && (n = migrateV5(n));
-    n = migrateV6(n);
+    v0 < 6 && (n = migrateV6(n));
+    n = migrateV7(n);
     Lt({ settings: n }, !1);
     v0 < 2 && applySprint2611();
     v0 < 3 && applyDayPlans(CATCHUP_2811);
     v0 < 4 && applyV4Days();
     v0 < 5 && applyV5Days();
-    applyV6Days();
+    v0 < 6 && applyV6Days();
+    applyV7Days();
     setTimeout(
       () =>
         Ea(
           v0 >= 1
-            ? "Блокнот обновлён: новое расписание недели по сетке 15 минут, суббота — учебный день, бассейн раз в 2 недели"
+            ? "Блокнот 4.0: конструктор допов — Ещё → Конструктор"
             : "Блокнот обновлён: расписание, привычки и темы по учебному плану",
         ),
       400,
@@ -1204,12 +1288,13 @@
     }
   }
   function At(t, a, e, s = !0) {
-    ((U[t][a] = e), jt(t, a, e), s && $a());
+    ((piMemo = {}), (qMemo = null), (U[t][a] = e), jt(t, a, e), s && $a());
   }
   function St(t, a, e = !0) {
-    (delete U[t][a], jt(t, a, null), e && $a());
+    ((piMemo = {}), (qMemo = null), delete U[t][a], jt(t, a, null), e && $a());
   }
   function Lt(t, a = !0) {
+    ((piMemo = {}), (qMemo = null));
     const e = N(U.profile) || { settings: N(r), timer: null };
     ((e.settings && Array.isArray(e.settings.habits)) || (e.settings = N(r)),
       (e.settings.weekGoals && "object" == typeof e.settings.weekGoals) || (e.settings.weekGoals = N(r.weekGoals)),
@@ -1386,7 +1471,7 @@
   }
   function Kt(t, a) {
     if (t && t.bad) {
-      const mn = bt().minimum;
+      const mn = minFor(j(a));
       return mn.length ? mn.filter((m) => t.min && t.min[m.id]).length / mn.length : null;
     }
     const k0 = j(a),
@@ -1583,11 +1668,13 @@
     <div class="set-row"><span>Уведомления, пока блокнот открыт: начало дела, конец помидора, лимит игр</span><button class="btn small ${n ? "primary" : ""}" data-a="notify-toggle" aria-pressed="${n}">${n ? "Включено" : "Включить"}</button></div>
     <h3>Напоминания на телефон</h3>${pushRow()}
     <h3>Расписание и темы</h3>
-    <div class="btn-row" style="margin-top:0"><button class="btn small" data-a="tt-open">Уроки</button><button class="btn small" data-a="go-sched">Расписание дня</button><button class="btn small" data-a="cats-open">Темы таймера и цели</button></div>
+    <div class="btn-row" style="margin-top:0"><button class="btn small primary" data-a="lego-go">Конструктор допов</button><button class="btn small" data-a="tt-open">Уроки</button><button class="btn small" data-a="go-sched">Расписание дня</button><button class="btn small" data-a="cats-open">Темы таймера и цели</button></div>
     <h3>Привычки</h3>
-    <p class="hint top0">Цифра — сколько раз в этот день нужно сделать. 0 — в этот день не нужно.</p>
-    <div class="scroll-x"><table class="set-table"><thead><tr><th>Название</th>${u.map((t) => `<th>${t}</th>`).join("")}<th></th></tr></thead><tbody>
-    ${a.habits.map((t, e) => `<tr><td class="name"><input id="sh-n-${e}" data-input="set-h-name" data-i="${e}" value="${O(t.name)}" aria-label="Название привычки" autocomplete="off"></td>${t.t.map((a, s) => `<td><input id="sh-t-${e}-${s}" class="num mono" type="number" min="0" max="9" inputmode="numeric" data-input="set-h-t" data-i="${e}" data-d="${s}" value="${a}" aria-label="${O(t.name)}, ${u[s]}"></td>`).join("")}<td class="ord"><button class="x" data-a="set-h-up" data-i="${e}" aria-label="Выше" ${0 === e ? "disabled" : ""}>↑</button><button class="x" data-a="set-h-down" data-i="${e}" aria-label="Ниже" ${e === a.habits.length - 1 ? "disabled" : ""}>↓</button><button class="x" data-a="set-h-del" data-i="${e}" aria-label="Удалить привычку">×</button></td></tr>`).join("")}
+    <p class="hint top0">Привычка с темой считается по расписанию: сколько дел этой темы в дне, столько раз её и нужно сделать. Без темы — цифра: сколько раз в этот день, 0 — не нужно.</p>
+    <div class="scroll-x"><table class="set-table"><thead><tr><th>Название</th><th>Тема</th>${u.map((t) => `<th>${t}</th>`).join("")}<th></th></tr></thead><tbody>
+    ${a.habits.map((t, e) => `<tr><td class="name"><input id="sh-n-${e}" data-input="set-h-name" data-i="${e}" value="${O(t.name)}" aria-label="Название привычки" autocomplete="off"></td><td><select id="sh-c-${e}" data-input="set-h-cat" data-i="${e}" aria-label="Тема привычки"><option value="">без темы</option>${ALLCATS.filter((c0) => !c0.archived || c0.id === t.cat)
+      .map((c0) => `<option value="${O(c0.id)}" ${c0.id === t.cat ? "selected" : ""}>${O(c0.short)}</option>`)
+      .join("")}</select></td>${t.cat ? `<td colspan="7" class="muted small">по расписанию</td>` : t.t.map((a, s) => `<td><input id="sh-t-${e}-${s}" class="num mono" type="number" min="0" max="9" inputmode="numeric" data-input="set-h-t" data-i="${e}" data-d="${s}" value="${a}" aria-label="${O(t.name)}, ${u[s]}"></td>`).join("")}<td class="ord"><button class="x" data-a="set-h-up" data-i="${e}" aria-label="Выше" ${0 === e ? "disabled" : ""}>↑</button><button class="x" data-a="set-h-down" data-i="${e}" aria-label="Ниже" ${e === a.habits.length - 1 ? "disabled" : ""}>↓</button><button class="x" data-a="set-h-del" data-i="${e}" aria-label="Удалить привычку">×</button></td></tr>`).join("")}
     </tbody></table></div>
     <div><button class="btn small" data-a="set-h-add">+ Привычка</button></div>
     <h3>Минимум плохого дня</h3>
@@ -1601,7 +1688,7 @@
     <p class="hint top0">Сохраняет все данные в файл. Его можно восстановить на любом устройстве.</p>
     <div class="btn-row" style="margin-top:0"><button class="btn small" data-a="export-file">Скачать копию</button><label class="btn small file-btn">Восстановить из файла<input type="file" accept="application/json,.json" data-change="import-file" aria-label="Файл резервной копии"></label></div>
     ${i ? `<div class="notice">В файле записей: ${i.count}. Восстановить? Записи с теми же датами и номерами заменятся, остальные останутся как есть.<div class="btn-row"><button class="btn small primary" data-a="import-go">Восстановить</button><button class="btn small" data-a="import-cancel">Отмена</button></div></div>` : ""}
-    <p class="hint">Блокнот, версия 3.0</p>
+    <p class="hint">Блокнот, версия 4.0 «Конструктор»</p>
     <div class="modal-f"><button class="btn ghost" data-a="settings-close">Отмена</button><button class="btn primary" data-a="settings-save">Сохранить</button></div>
   </div></div>`;
   }
@@ -1624,25 +1711,51 @@
   const isCatId = (c) => !!c && "debt" !== c;
   // Привычка → тема таймера (обратно к HABIT_OF)
   const CAT_OF_HABIT = { hw: "hw", kruzhok: "phys", tyf: "tyf", philo: "philo", ger: "ger", eng: "eng", read: "read" };
-  // Сколько раз нужна привычка в этот день. Если день изменён «только на этот день», привычки тем
-  // считаются по его плану: убрал Кружок ради рывка — он не нужен; добавил урок за пропущенный день — нужен.
+  // Привычка, привязанная к теме: сколько раз её нужно сделать — столько, сколько дел этой темы в плане дня.
+  // Расписание — единственный источник правды: переставил Кружок со вторника на среду — привычка переехала сама.
+  const habitOfCat = (cat) => (cat ? bt().habits.find((h0) => h0.cat === cat) : null);
   function hT(h0, key) {
-    const base = h0.t[E(M(key))] || 0,
-      day = U.days[key],
-      cat = CAT_OF_HABIT[h0.id];
-    if (!cat || !day || !Array.isArray(day.plan)) return base;
-    return Math.min(9, day.plan.filter((b) => b && b.cat === cat).length);
+    if (h0.cat) return Math.min(9, planItems(key).list.filter((b) => "block" === b.kind && b.cat === h0.cat && b.dur > 0 && "moved" !== b.status).length);
+    return h0.t[E(M(key))] || 0;
   }
+  // Минимум плохого дня — только то, что есть в плане этого дня (нет Кружка в расписании — нет и в минимуме)
+  function minFor(key) {
+    const L = planItems(key).list;
+    return bt().minimum.filter((m0) => !m0.cat || L.some((b) => "block" === b.kind && b.cat === m0.cat));
+  }
+  // Недели А и Б (чередуются): неделя с weekAnchor — А
+  function weekLetter(key) {
+    const d0 = M(key),
+      mon = D(d0, -E(d0)),
+      a0 = M(bt().weekAnchor || "2026-11-23"),
+      n0 = Math.round((mon - a0) / 6048e5);
+    return 0 === ((n0 % 2) + 2) % 2 ? "a" : "b";
+  }
+  // Шаблон дня для конкретной даты: дела «через неделю» — только своей недели (А или Б)
+  function tplFor(key) {
+    const wl = weekLetter(key);
+    return (bt().sched["d" + E(M(key))] || []).filter((b) => !b.wk || b.wk === wl);
+  }
+  // Время сна дня недели в минутах; «01:00» — это уже следующие сутки
+  function sleepMin(st, wd) {
+    const v0 = hm((st.times.sleepD && st.times.sleepD[wd]) || st.times.sleep);
+    return v0 < 720 ? v0 + 1440 : v0;
+  }
+  let piMemo = {};
   // План дня: шаблон (или план «только на этот день») + подготовка к завтрашним контрольным + продления.
   // Отдых (без темы) — «буфер», он сжимается. Встреча (fixed) стоит на своём времени, остальное обходит её.
   function planItems(key) {
+    return piMemo[key] || (piMemo[key] = planItems0(key));
+  }
+  function planItems0(key) {
     const dt0 = M(key),
       wd = E(dt0),
       st = bt(),
       day = U.days[key] || {},
       bl = day.blocks || {},
       own = Array.isArray(day.plan),
-      raw = (own ? normBlocks(day.plan) : st.sched["d" + wd] || []).map((b) =>
+      wl = own ? null : weekLetter(key),
+      raw = (own ? normBlocks(day.plan) : (st.sched["d" + wd] || []).filter((b) => !b.wk || b.wk === wl)).map((b) =>
         Object.assign({}, b, { kind: "block", s0: hm(b.start), base: b.dur, ext: (bl[b.id] && bl[b.id].ext) || 0 }),
       );
     const tomorrow = j(D(dt0, 1));
@@ -1655,7 +1768,7 @@
         else
           ((idx = raw.findIndex((b) => isCatId(b.cat))),
             idx < 0 && (idx = raw.length),
-            (at = idx < raw.length ? raw[idx].s0 : hm(st.times.sleep) - 60));
+            (at = idx < raw.length ? raw[idx].s0 : sleepMin(st, wd) - 60));
         const dur = "olymp" === ev.type ? 60 : 45,
           pid = "prep_" + id;
         raw.splice(idx, 0, {
@@ -1701,27 +1814,30 @@
     list.sort((x0, y0) => x0.s - y0.s);
     const cnt = {};
     list.forEach((b) => {
+      isCatId(b.cat) && "done" === b.status && (cnt[b.cat] = (cnt[b.cat] || 0) + 1);
+    });
+    list.forEach((b) => {
       if (!isCatId(b.cat) || b.status) return;
-      const hid = HABIT_OF[b.cat];
-      if (!hid || !st.habits.some((h) => h.id === hid)) return;
+      const hb0 = st.habits.find((h) => h.cat === b.cat),
+        hid = hb0 && hb0.id;
+      if (!hid) return;
       cnt[b.cat] = (cnt[b.cat] || 0) + 1;
       ((day.habits && day.habits[hid]) || 0) >= cnt[b.cat] && ((b.status = "done"), (b.byHabit = !0));
     });
-    const sleep = hm(st.times.sleep),
+    const sleep = sleepMin(st, wd),
       lastCat = list.filter((b) => isCatId(b.cat) && b.dur > 0).pop(),
       over = lastCat ? Math.max(0, lastCat.s + lastCat.dur - sleep) : 0;
-    return { list, over, sleep, wake: hm(st.times.wake[wd]), wd, bad: !!day.bad, own };
+    return { list, over, sleep, wake: hm(st.times.wake[wd]), wd, bad: !!day.bad, own, wl };
   }
   function blkLogged(key, id) {
     const d = U.days[key];
     return ((d && d.sessions) || []).filter((x) => x.blk === id).reduce((a, x) => a + (x.sec || 0) / 60, 0);
   }
   function bumpHabitIn(d, cat, key) {
-    const hid = HABIT_OF[cat],
-      hb = bt().habits.find((h) => h.id === hid);
+    const hb = habitOfCat(cat);
     if (!hb) return;
     const tgt = hT(hb, key);
-    tgt && ((d.habits = d.habits || {}), (d.habits[hid] = Math.min(tgt, (d.habits[hid] || 0) + 1)));
+    tgt && ((d.habits = d.habits || {}), (d.habits[hb.id] = Math.min(tgt, (d.habits[hb.id] || 0) + 1)));
   }
   // План и факт по темам за неделю (только с начала работы по плану и только прошедшие блоки)
   function weekBalance(off = 0) {
@@ -1752,7 +1868,7 @@
     ALLCATS.forEach((c) => {
       const p0 = planned[c.id] || 0,
         f = fact[c.id] || 0;
-      if (!p0 && !f) return;
+      if ((!p0 && !f) || c.nodebt) return;
       const dl = Math.round(p0 - f);
       rows.push({ cat: c, planned: p0, fact: f, debt: Math.max(0, dl), reserve: Math.max(0, -dl) });
       dl > 0 ? (debt += dl) : (reserve += -dl);
@@ -1915,7 +2031,7 @@
         ? (msg = `<b>${O(cur.title)}</b> — сделано.`)
         : nm < P0.wake
           ? (msg = "Ещё рано. Выспись.")
-          : (msg = nx ? "Сейчас свободное время по расписанию." : "На сегодня всё по расписанию. Лечь до " + O(bt().times.sleep) + ".");
+          : (msg = nx ? "Сейчас свободное время по расписанию." : "На сегодня всё по расписанию. Лечь до " + mh(P0.sleep) + ".");
     return `<section class="card now calm"><div class="now-sub" style="margin:0">${msg}${
       nx ? ` Дальше — <b>${O(nx.title)}</b> в ${mh(nx.s)}.` : ""
     }</div>${cur && (cur.kit || cur.queue) ? blockExtra(cur, key, !0) : ""}${
@@ -2016,7 +2132,7 @@
           `<li><button class="habit ${x0.done ? "done" : ""}" data-a="proj-step" data-id="${O(p0.id)}" data-v="${O(x0.id)}" aria-pressed="${x0.done}"><span class="box">${w.check}</span><span class="hname">${O(x0.t)}</span></button></li>`,
       )
       .join("")}</ul>
-    <div class="btn-row">${c && !tm ? `<button class="btn small" data-a="proj-timer" data-id="${O(p0.id)}">${w.play}Засечь: ${O(c.short)}</button>` : ""}${
+    <div class="btn-row">${c && !tm ? `<button class="btn small" data-a="proj-timer" data-id="${O(p0.id)}">${w.play}Засечь: ${O(c.short)}</button>` : ""}<button class="btn small" data-a="proj-place" data-id="${O(p0.id)}">В расписание</button>${
       n0 && k0 === n0 ? `<button class="btn small primary" data-a="proj-finish" data-id="${O(p0.id)}">Проект готов</button>` : ""
     }<button class="link" data-a="proj-edit" data-id="${O(p0.id)}">Изменить</button></div></section>`;
       })
@@ -2035,7 +2151,7 @@
     const key = j();
     if (!o.bad)
       return ht() ? "" : `<button class="btn dashed wide" data-a="bad-on">Плохой день — оставить только минимум</button>`;
-    const mn = bt().minimum,
+    const mn = minFor(key),
       done = mn.filter((m) => o.min && o.min[m.id]).length,
       cnt = Qt(0).filter((d) => {
         const dd = U.days[j(d)];
@@ -2222,7 +2338,7 @@
         wd = E(now),
         d0 = U.days[j(now)] || {};
       let left;
-      if (d0.bad) left = bt().minimum.filter((m) => !(d0.min && d0.min[m.id])).length;
+      if (d0.bad) left = minFor(j(now)).filter((m) => !(d0.min && d0.min[m.id])).length;
       else
         left = bt().habits.reduce((a, h) => a + Math.max(0, hT(h, j(now)) - ((d0.habits && d0.habits[h.id]) || 0)), 0);
       if (left === lastBadge) return;
@@ -2361,7 +2477,7 @@
     }</div><button class="btn" data-a="sched-wk" data-v="1" aria-label="Неделя позже" ${wk >= 8 ? "disabled" : ""}>›</button></div></div>`;
     if ("week" === tt.schedMode)
       return `${head}
-    <section class="card wg-card"><div class="card-h"><h2>Неделя ${O(Zt(days0))}</h2><span class="muted small wg-legend"><i class="own-dot"></i> изменён отдельно</span></div>${weekGrid(days0)}</section>
+    <section class="card wg-card"><div class="card-h"><h2>Неделя ${O(Zt(days0))} · ${"a" === weekLetter(j(days0[0])) ? "А" : "Б"}</h2><span class="muted small wg-legend"><i class="own-dot"></i> изменён отдельно</span></div>${weekGrid(days0)}</section>
     <div class="btn-row" style="margin-top:0"><button class="btn primary" data-a="wg-print">Распечатать неделю</button><button class="btn" data-a="tt-open">Уроки</button></div>
     <p class="hint">На компьютере дела можно перетаскивать мышкой: на другое время или в другой день. Если бросить дело на другое дело, они поменяются местами. На «Свободно» или окно долгов дело просто встанет. Нажми на дело — откроется правка этого дня. На телефоне переставляй стрелками ↑↓ и кнопкой «Перенести на другой день» в правке дня.</p>`;
     return `${head}
@@ -2403,7 +2519,7 @@
       }),
       all = cols.flatMap((c) => c.items),
       t0 = 60 * Math.floor(Math.min(540, ...all.map((it) => it.s)) / 60),
-      t1 = 60 * Math.ceil(Math.max(hm(st2.times.sleep), ...all.map((it) => it.s + it.dur)) / 60),
+      t1 = 60 * Math.ceil(Math.max(...days0.map((d) => sleepMin(st2, E(d))), ...all.map((it) => it.s + it.dur)) / 60),
       hours = [];
     for (let h0 = t0; h0 <= t1; h0 += 60) hours.push(h0);
     const pos = (s0, d0) => `top:calc(${s0 - t0} * var(--px));height:calc(${d0} * var(--px))`;
@@ -2421,7 +2537,7 @@
           nowL = c.key === today && nm >= t0 && nm <= t1 ? `<div class="wg-now" style="top:calc(${nm - t0} * var(--px))"></div>` : "";
         return `<div class="wg-day ${c.key === today ? "today" : ""} ${c.own ? "own" : ""}">
       <button class="wg-head" data-a="wg-day" data-v="${c.i0}">${u[c.i0]} <b>${c.d.getDate()}</b>${c.own ? '<i class="own-dot" title="изменён отдельно"></i>' : ""}</button>
-      <div class="wg-col" data-key="${c.key}" data-t0="${t0}" style="height:calc(${t1 - t0} * var(--px))">${school}${c.items
+      <div class="wg-col" data-a="wg-add" data-key="${c.key}" data-t0="${t0}" style="height:calc(${t1 - t0} * var(--px))" title="Нажми на пустое место, чтобы добавить дело">${school}${c.items
         .map((it) => {
           const cc = it.cat && "debt" !== it.cat ? s(it.cat) : null,
             col = "debt" === it.cat ? "var(--warn)" : cc ? cc.color : "var(--muted)",
@@ -2473,8 +2589,8 @@
     ${
       one
         ? `<p class="hint top0">Меняется только ${O(F(dd0, { weekday: "long", day: "numeric", month: "long" }))}. Шаблон ${DAY_GEN[dr.d]} и другие недели остаются как были.</p>`
-        : `<div class="sc-times"><label>Подъём<input id="sd-wake" class="mono" type="text" inputmode="numeric" maxlength="5" placeholder="07:00" data-input="sd-wake" value="${O(dr.wake)}"></label><label>Сон<input id="sd-sleep" class="mono" type="text" inputmode="numeric" maxlength="5" placeholder="23:00" data-input="sd-sleep" value="${O(dr.sleep)}"></label></div>
-    <p class="hint">Шаблон повторяется каждую неделю. Время сна общее для всех дней.</p>`
+        : `<div class="sc-times"><label>Подъём<select id="sd-wake" class="mono" data-input="sd-wake">${timeOpts(dr.wake)}</select></label><label>Сон (${O(p[dr.d].toLowerCase())})<select id="sd-sleep" class="mono" data-input="sd-sleep">${timeOpts(dr.sleep)}</select></label></div>
+    <p class="hint">Шаблон повторяется каждую неделю. «Неделя А/Б» у дела — если оно бывает через неделю (эта неделя — ${"a" === weekLetter(j()) ? "А" : "Б"}).</p>`
     }
     <p class="hint">«По результату» — дело засчитывается, когда сделано, даже если быстрее. «По времени» — нужно отсидеть минуты. «Встреча» — время закреплено: если что-то затянется, встреча не сдвинется, остальное переедет после неё. Стрелки ↑↓ меняют дело местами с соседним, время остаётся за местом.</p>
     <div class="sc-list">${dr.blocks
@@ -2487,7 +2603,11 @@
       <select id="sb-mode-${i0}" data-input="sb-mode" data-i="${i0}" aria-label="Как засчитывать" ${b0.cat && "debt" !== b0.cat ? "" : "disabled"}><option value="time" ${"res" !== b0.mode ? "selected" : ""}>по времени</option><option value="res" ${"res" === b0.mode ? "selected" : ""}>по результату</option></select>
       <button class="pin-t ${b0.fixed ? "on" : ""}" data-a="sb-pin" data-i="${i0}" aria-pressed="${!!b0.fixed}" title="Встреча: время не сдвигается">${w.pin}<span>встреча</span></button>
       <button class="x" data-a="sb-del" data-i="${i0}" aria-label="Удалить">×</button>
-      <div class="sc-tools"><select id="sb-link-${i0}" data-input="sb-link" data-i="${i0}" aria-label="Что внутри дела"><option value="">без программы</option>${bt()
+      <div class="sc-tools">${
+        one
+          ? ""
+          : `<select id="sb-wk-${i0}" data-input="sb-wk" data-i="${i0}" aria-label="Какие недели"><option value="" ${b0.wk ? "" : "selected"}>каждую неделю</option><option value="a" ${"a" === b0.wk ? "selected" : ""}>неделя А</option><option value="b" ${"b" === b0.wk ? "selected" : ""}>неделя Б</option></select>`
+      }<select id="sb-link-${i0}" data-input="sb-link" data-i="${i0}" aria-label="Что внутри дела"><option value="">без программы</option>${bt()
         .queues.map((q0) => `<option value="q:${O(q0.id)}" ${b0.queue === q0.id ? "selected" : ""}>Очередь: ${O(q0.title)}</option>`)
         .join("")}${bt()
         .kits.map((k0) => `<option value="k:${O(k0.id)}" ${b0.kit === k0.id ? "selected" : ""}>Программа: ${O(k0.title)}</option>`)
@@ -2627,6 +2747,7 @@
       dueT = DECKS.reduce((a0, [d0]) => a0 + dueOf(d0).length, 0),
       wb = weekBalance(0),
       items = [
+        ["tab", "lego", w.lego, "Конструктор", "допы из кирпичиков: время, уроки, программы, задачи со сроком"],
         ["tab", "week", w.week, "Неделя и отчёт", wb.debt >= 5 ? `долг ${A(wb.debt)} · отчёт для Claude` : "план и факт, отчёт для Claude"],
         ["tab", "goals", w.goals, "Цели и события", up ? `впереди: ${up}` : "олимпиады, контрольные, задачи"],
         ["tab", "words", w.words, "Слова", dueT ? `на сегодня: ${dueT}` : `карточек: ${Object.keys(U.cards).length}`],
@@ -2689,7 +2810,577 @@
       .join("")}
     <div class="btn-row"><button class="btn" data-a="kit-new">+ Программа</button><button class="btn primary" data-a="kits-save">Сохранить программы</button></div>`;
   }
+  // ===================== Конструктор: допы из кирпичиков =====================
+  // Доп = тема (название, цвет, цель) + когда (дела в шаблоне недели) + что внутри (уроки по порядку или программа)
+  // + как засчитывать (по результату или по времени, привычка) + материалы. Поменял здесь — поменялось везде:
+  // в расписании, привычках, таймере, целях недели и в плане для печати.
+  const LEGO_PRESETS = [
+    ["course", "Курс по урокам", "уроки по порядку сами встают в дни", { mode: "res", habit: !0, ctype: "newq", dur: 60, ph: "Например: Росатом — разбор задач" }],
+    ["train", "Тренировка", "чек-лист упражнений на каждое занятие", { mode: "res", habit: !0, ctype: "newk", dur: 90, ph: "Например: Растяжка" }],
+    ["lang", "Язык или навык", "понемногу, но часто", { mode: "res", habit: !0, ctype: "", dur: 15, ph: "Например: Латынь" }],
+    ["time", "Практика по времени", "чтение, музыка, свой проект", { mode: "time", habit: !1, ctype: "", dur: 45, ph: "Например: Программирование" }],
+    ["empty", "С нуля", "все кирпичики выберешь сам", { mode: "time", habit: !1, ctype: "", dur: 60, ph: "Название допа" }],
+  ];
+  const wkName = (w0) => ("a" === w0 ? "А" : "b" === w0 ? "Б" : "");
+  const toFree = (b) => Object.assign({}, b, { title: "Свободно", cat: null, mode: "time", fixed: !1, kit: null, queue: null, pid: null });
+  function legoSlots(cid) {
+    const sc = bt().sched,
+      out = [];
+    for (let d0 = 0; d0 < 7; d0++) (sc["d" + d0] || []).forEach((b) => b.cat === cid && out.push(Object.assign({ d: d0 }, b)));
+    return out;
+  }
+  // минут в неделю: дело «через неделю» считается половиной; abMin — отдельно для недель А и Б
+  const slotMin = (L) => L.reduce((a0, b) => a0 + (b.wk ? (+b.dur || 0) / 2 : +b.dur || 0), 0),
+    abMin = (L) => ({
+      a: L.filter((b) => "b" !== b.wk).reduce((a0, b) => a0 + (+b.dur || 0), 0),
+      b: L.filter((b) => "a" !== b.wk).reduce((a0, b) => a0 + (+b.dur || 0), 0),
+    }),
+    abText = (m0) => (m0.a === m0.b ? A(m0.a) : `${A(m0.a)} / ${A(m0.b)}`),
+    // цель против расписания: в неделю А и Б может быть по-разному
+    goalGap = (m0, gm) =>
+      !gm || Math.min(m0.a, m0.b) + 5 >= gm
+        ? ""
+        : m0.a === m0.b
+          ? `Цель ${A(gm)} в неделю, а в расписании ${A(m0.a)} — не хватает ${A(gm - m0.a)}`
+          : `Цель ${A(gm)} в неделю: в неделю А в расписании ${A(m0.a)}, в неделю Б — ${A(m0.b)}`;
+  function slotText(L) {
+    const by = {};
+    L.forEach((b) => {
+      const k0 = b.d + "|" + (b.wk || "");
+      (by[k0] = by[k0] || { d: +b.d, wk: b.wk || "", t: [] }).t.push(b.start);
+    });
+    return Object.values(by)
+      .sort((x0, y0) => x0.d - y0.d || x0.wk.localeCompare(y0.wk))
+      .map((g0) => `${u[g0.d]}${g0.wk ? " (" + wkName(g0.wk) + ")" : ""} ${g0.t.sort((a0, b0) => hm(a0) - hm(b0)).join(", ")}`)
+      .join(" · ");
+  }
+  // Свободные места в шаблоне недели: «Свободно» и окна долгов
+  function freeWindows() {
+    const st2 = bt(),
+      all = [];
+    for (let d0 = 0; d0 < 7; d0++) (st2.sched["d" + d0] || []).forEach((b) => isFreeBlk(b) && all.push({ d: d0, b }));
+    return { list: all.filter((x0) => x0.b.dur >= 30), ab: abMin(all.map((x0) => x0.b)) };
+  }
+  // Первое время длиной dur в списке дел дня, где нет дел, отдыха и встреч (только «свободно»); не позже 23:00
+  function freeStart(L, d0, wk, dur, pref, extra) {
+    const st2 = bt(),
+      same = (w1) => !w1 || !wk || w1 === wk,
+      busy = L.filter((b) => !isFreeBlk(b) && same(b.wk))
+        .map((b) => [hm(b.start), hm(b.start) + b.dur])
+        .concat(extra || []),
+      first = L.length ? Math.min(...L.map((b) => hm(b.start))) : hm(st2.times.wake[d0]) + 60,
+      end = Math.min(sleepMin(st2, d0), 1380),
+      fits = (s0) => s0 >= first && s0 + dur <= end && !busy.some(([a0, e0]) => a0 < s0 + dur && s0 < e0),
+      q15 = (v0) => 15 * Math.ceil(v0 / 15);
+    for (const from of [Math.max(pref || 0, first), first]) {
+      const cands = [q15(from)]
+        .concat(busy.map(([, e0]) => q15(e0)))
+        .filter((v0) => v0 >= from)
+        .sort((x0, y0) => x0 - y0);
+      for (const s0 of cands) if (fits(s0)) return s0;
+    }
+    return null;
+  }
+  // Поставить дело в список дел дня: «свободно», окно долгов и отдых под ним сжимаются (с учётом недель А и Б)
+  function putIntoT(plan, blk) {
+    const s0 = hm(blk.start),
+      e0 = s0 + blk.dur,
+      out = [],
+      other = (w0) => ("a" === w0 ? "b" : "a");
+    plan.forEach((b) => {
+      const a0 = hm(b.start),
+        z0 = a0 + b.dur,
+        soft = isFreeBlk(b) || (!b.cat && !b.fixed);
+      if (!soft || z0 <= s0 || a0 >= e0 || (b.wk && blk.wk && b.wk !== blk.wk)) return void out.push(b);
+      // отдых «каждую неделю», а новое дело — только в неделю А: в неделю Б отдых остаётся целым
+      const wk0 = b.wk || blk.wk || null;
+      !b.wk && blk.wk && out.push(Object.assign({}, b, { id: b.id + "-" + other(blk.wk), wk: other(blk.wk) }));
+      s0 - a0 >= 5 && out.push(Object.assign({}, b, { id: !b.wk && blk.wk ? b.id + "-" + blk.wk : b.id, dur: s0 - a0, wk: wk0 }));
+      z0 - e0 >= 5 && out.push(Object.assign({}, b, { id: b.id + "-" + T().slice(-4), start: mh(e0), dur: z0 - e0, wk: wk0 }));
+    });
+    out.push(blk);
+    return normBlocks(out);
+  }
+  // Соседние «Свободно» одной недели склеиваются в одно окно
+  function mergeFree(plan) {
+    const out = [];
+    normBlocks(plan).forEach((b) => {
+      const p0 = out.filter((x0) => (x0.wk || "") === (b.wk || "")).pop(),
+        fr = (x0) => !x0.cat && /^Свободно$/.test(x0.title);
+      p0 && fr(p0) && fr(b) && hm(p0.start) + p0.dur === hm(b.start) ? (p0.dur += b.dur) : out.push(Object.assign({}, b));
+    });
+    return out;
+  }
+  function slotClash(dr, i0) {
+    const sl = dr.slots[i0],
+      a0 = hm(sl.start),
+      z0 = a0 + (+sl.dur || 0),
+      same = (w1) => !w1 || !sl.wk || w1 === sl.wk,
+      over = (s1, d1) => s1 < z0 && a0 < s1 + d1,
+      tpl = (bt().sched["d" + sl.d] || []).filter((b) => b.cat !== dr.id && same(b.wk) && !isFreeBlk(b) && over(hm(b.start), b.dur)),
+      self = dr.slots.filter((x0, j0) => j0 !== i0 && +x0.d === +sl.d && same(x0.wk) && over(hm(x0.start), +x0.dur || 0));
+    return {
+      hard: tpl
+        .filter((b) => b.cat || b.fixed)
+        .map((b) => `${b.title} ${b.start}–${mh(hm(b.start) + b.dur)}`)
+        .concat(self.map((x0) => `${(x0.title || "").trim() || dr.name || "другое время этого допа"} ${x0.start}`)),
+      soft: [...new Set(tpl.filter((b) => !b.cat && !b.fixed).map((b) => b.title))],
+      late: z0 > sleepMin(bt(), +sl.d),
+    };
+  }
+  function slotFind(dr, i0, quiet) {
+    const sl = dr.slots[i0],
+      du = +sl.dur || 60,
+      wk = sl.wk || null,
+      extraOf = (d0) =>
+        dr.slots.filter((x0, j0) => j0 !== i0 && +x0.d === d0 && (!x0.wk || !wk || x0.wk === wk)).map((x0) => [hm(x0.start), hm(x0.start) + (+x0.dur || 0)]),
+      tplOf = (d0) => (bt().sched["d" + d0] || []).filter((b) => b.cat !== dr.id);
+    for (let k0 = 0; k0 < 7; k0++) {
+      const d0 = (+sl.d + k0) % 7,
+        s0 = freeStart(tplOf(d0), d0, wk, du, 0 === k0 ? hm(sl.start) : 0, extraOf(d0));
+      if (null != s0) {
+        ((sl.d = d0), (sl.start = mh(s0)));
+        quiet || Ea(0 === k0 ? `Место нашлось: ${mh(s0)}` : `В этот день места нет — ${p[d0].toLowerCase()}, ${mh(s0)}`);
+        return !0;
+      }
+    }
+    quiet || Ea("Свободного места в неделе нет — выбери время сам, отдых под делом сожмётся");
+    return !1;
+  }
+  function legoAddSlot(dr, dur) {
+    const last = dr.slots[dr.slots.length - 1];
+    dr.slots.push({
+      id: "",
+      d: last ? (+last.d + 1) % 7 : 0,
+      start: last ? last.start : "17:00",
+      dur: dur || (last ? +last.dur : 60),
+      title: last ? last.title : "",
+      wk: last ? last.wk || "" : "",
+      fixed: !1,
+      link: "auto",
+    });
+    slotFind(dr, dr.slots.length - 1, !0);
+  }
+  function legoDraftOf(cid) {
+    const st2 = bt(),
+      c0 = ALLCATS.find((x0) => x0.id === cid);
+    if (!c0) return null;
+    const hb = st2.habits.find((h0) => h0.cat === cid),
+      cont = c0.content,
+      aq = cont && "queue" === cont.type ? cont.id : null,
+      ak = cont && "kit" === cont.type ? cont.id : null,
+      L = legoSlots(cid),
+      kit0 = ak && st2.kits.find((k0) => k0.id === ak);
+    return {
+      id: cid,
+      isNew: !1,
+      name: c0.name,
+      ph: "Название допа",
+      color: c0.color,
+      goal: c0.goal ? String(c0.goal).replace(".", ",") : "",
+      mode: c0.mode || (L.length && 2 * L.filter((b) => "res" === b.mode).length >= L.length ? "res" : "time"),
+      habit: !!hb,
+      habitName: hb ? hb.name : "",
+      ctype: aq ? "q:" + aq : ak ? "k:" + ak : "",
+      ctitle: "",
+      ctext: kit0 ? kit0.items.join("\n") : "",
+      notes: c0.notes || "",
+      archived: !!c0.archived,
+      debt: !c0.nodebt,
+      slots: L.map((b) => ({
+        id: b.id,
+        d: b.d,
+        start: b.start,
+        dur: b.dur,
+        title: b.title,
+        wk: b.wk || "",
+        fixed: !!b.fixed,
+        link: (b.queue || null) === aq && (b.kit || null) === ak ? "auto" : b.queue ? "q:" + b.queue : b.kit ? "k:" + b.kit : "",
+      })),
+    };
+  }
+  function legoDraftNew(pid) {
+    const pr = LEGO_PRESETS.find((x0) => x0[0] === pid) || LEGO_PRESETS[LEGO_PRESETS.length - 1],
+      o = pr[3],
+      used = new Set(ALLCATS.filter((c0) => !c0.archived).map((c0) => c0.color)),
+      dr = {
+        id: "c" + T(),
+        isNew: !0,
+        name: "",
+        ph: o.ph,
+        color: CAT_COLORS.find((c0) => !used.has(c0)) || CAT_COLORS[0],
+        goal: "",
+        mode: o.mode,
+        habit: o.habit,
+        habitName: "",
+        ctype: o.ctype,
+        ctitle: "",
+        ctext: "",
+        notes: "",
+        archived: !1,
+        debt: "train" !== pid,
+        slots: [],
+      };
+    legoAddSlot(dr, o.dur);
+    return dr;
+  }
+  function legoSave() {
+    const dr = tt.legoDraft,
+      name = (dr.name || "").trim();
+    if (!name) return void Ea("Назови доп");
+    const st2 = N(bt()),
+      id = dr.id,
+      lines = String(dr.ctext || "")
+        .split("\n")
+        .map((x0) => x0.trim())
+        .filter(Boolean);
+    // что внутри
+    let content = null;
+    if ("newq" === dr.ctype) {
+      if (!lines.length) return void Ea("Впиши уроки — по одному на строку");
+      const qid = "q" + T();
+      st2.queues.push({
+        id: qid,
+        title: (dr.ctitle || "").trim() || name + " · уроки",
+        items: lines.map((l0, i0) => {
+          const [t0, p0] = l0.split("|").map((x0) => x0.trim());
+          return { id: "q" + i0 + T(), t: t0, p: p0 || "", th: !1, pr: !1 };
+        }),
+      });
+      content = { type: "queue", id: qid };
+    } else if ("newk" === dr.ctype) {
+      if (!lines.length) return void Ea("Впиши пункты программы — по одному на строку");
+      const kid = "k" + T();
+      st2.kits.push({ id: kid, title: (dr.ctitle || "").trim() || name, items: lines });
+      content = { type: "kit", id: kid };
+    } else if (/^q:/.test(dr.ctype)) content = { type: "queue", id: dr.ctype.slice(2) };
+    else if (/^k:/.test(dr.ctype)) {
+      content = { type: "kit", id: dr.ctype.slice(2) };
+      const k0 = st2.kits.find((x0) => x0.id === content.id);
+      k0 && lines.length && (k0.items = lines);
+    }
+    // тема
+    const g0 = parseFloat(String(dr.goal || "").replace(",", ".")) || 0,
+      def = DEFAULT_CATS.find((d0) => d0.id === id),
+      old = st2.cats.find((c0) => c0.id === id),
+      cat = {
+        id,
+        name,
+        short: old && old.name === name ? old.short : def && def.name === name ? def.short : name.length > 11 ? name.split(" ")[0] : name,
+        color: dr.color,
+        goal: Math.min(80, Math.max(0, Math.round(2 * g0) / 2)),
+        archived: !1,
+        content,
+        mode: dr.mode,
+        notes: String(dr.notes || ""),
+        nodebt: !dr.debt,
+      };
+    old ? Object.assign(old, cat) : st2.cats.push(cat);
+    // когда: старые дела допа становятся «Свободно», новые встают на свои места, отдых под ними сжимается
+    const ok = dr.slots.filter((x0) => null != parseT(x0.start)),
+      linkOf = (lk) =>
+        "auto" === lk
+          ? { queue: content && "queue" === content.type ? content.id : null, kit: content && "kit" === content.type ? content.id : null }
+          : /^q:/.test(lk)
+            ? { queue: lk.slice(2), kit: null }
+            : /^k:/.test(lk)
+              ? { queue: null, kit: lk.slice(2) }
+              : { queue: null, kit: null };
+    for (let d0 = 0; d0 < 7; d0++) {
+      let plan = (st2.sched["d" + d0] || []).map((b) => (b.cat === id ? Object.assign(toFree(b), { id: "fr" + T() }) : b));
+      ok.filter((x0) => +x0.d === d0)
+        .sort((x0, y0) => hm(x0.start) - hm(y0.start))
+        .forEach((x0) => {
+          plan = putIntoT(
+            plan,
+            Object.assign(
+              {
+                id: x0.id || "s" + T(),
+                start: mh(parseT(x0.start)),
+                dur: Math.max(15, Math.min(600, +x0.dur || 60)),
+                title: (x0.title || "").trim() || name,
+                cat: id,
+                mode: dr.mode,
+                fixed: !!x0.fixed,
+                wk: x0.wk || null,
+              },
+              linkOf(x0.link),
+            ),
+          );
+        });
+      st2.sched["d" + d0] = mergeFree(plan);
+    }
+    // привычка: считается по расписанию — сколько дел допа в дне, столько отметок
+    const hi = st2.habits.findIndex((h0) => h0.cat === id),
+      hn = (dr.habitName || "").trim();
+    dr.habit
+      ? hi < 0
+        ? st2.habits.push({ id: "h" + T(), name: hn || name, t: [0, 0, 0, 0, 0, 0, 0], cat: id })
+        : hn && (st2.habits[hi].name = hn)
+      : hi >= 0 && st2.habits.splice(hi, 1);
+    const undo = snapOf([], !0);
+    ((tt.legoOpen = !1), (tt.confirm = null));
+    Lt({ settings: st2 });
+    Ea(`${dr.isNew ? "Доп собран" : dr.archived ? "Доп вернулся" : "Сохранено"}: ${name}`, undo);
+  }
+  function legoDel(id) {
+    const st2 = N(bt()),
+      today = j(),
+      c0 = st2.cats.find((x0) => x0.id === id) || Object.assign({}, ALLCATS.find((x0) => x0.id === id));
+    if (!c0 || !c0.id) return;
+    if (!st2.cats.some((x0) => !x0.archived && x0.id !== id)) return void Ea("Нужна хотя бы одна активная тема");
+    const keys = Object.keys(U.days).filter((k0) => k0 >= today && U.days[k0] && Array.isArray(U.days[k0].plan) && U.days[k0].plan.some((b) => b && b.cat === id)),
+      undo = snapOf(keys, !0);
+    for (let d0 = 0; d0 < 7; d0++) st2.sched["d" + d0] = mergeFree((st2.sched["d" + d0] || []).map((b) => (b.cat === id ? toFree(b) : b)));
+    st2.habits = st2.habits.filter((h0) => h0.cat !== id);
+    c0.archived = !0;
+    st2.cats.some((x0) => x0.id === id) || st2.cats.push(c0);
+    keys.forEach((k0) =>
+      Tt(k0, (d) => {
+        d.plan = mergeFree(normBlocks(d.plan).map((b) => (b.cat === id ? toFree(b) : b)));
+      }, !1),
+    );
+    ((tt.legoOpen = !1), (tt.confirm = null));
+    Lt({ settings: st2 });
+    Ea(`Доп убран: ${c0.name}. Записи времени остались, вернуть можно из архива`, undo);
+  }
+  function legoView() {
+    const st2 = bt(),
+      act = ALLCATS.filter((c0) => !c0.archived),
+      arch = ALLCATS.filter((c0) => c0.archived && st2.cats.some((x0) => x0.id === c0.id)),
+      fw = freeWindows(),
+      today = j(),
+      cards = act
+        .map((c0) => {
+          const L = legoSlots(c0.id),
+            mins = slotMin(L),
+            ab = abMin(L),
+            hb = st2.habits.find((h0) => h0.cat === c0.id),
+            gm = Math.round(60 * (c0.goal || 0)),
+            cq = c0.content && "queue" === c0.content.type ? [c0.content.id] : [],
+            ck = c0.content && "kit" === c0.content.type ? [c0.content.id] : [],
+            qs = [...new Set(cq.concat(L.map((b) => b.queue).filter(Boolean)))],
+            ks = [...new Set(ck.concat(L.map((b) => b.kit).filter(Boolean)))],
+            mode = c0.mode || (L.length && 2 * L.filter((b) => "res" === b.mode).length >= L.length ? "res" : "time"),
+            tags = ["res" === mode ? "по результату" : "по времени"];
+          hb && tags.push("привычка");
+          gm && tags.push(`цель ${A(gm)}`);
+          L.some((b) => b.fixed) && tags.push("встреча");
+          const qline = qs
+              .map((qid) => {
+                const q0 = st2.queues.find((x0) => x0.id === qid);
+                if (!q0) return "";
+                const dn = q0.items.filter((x0) => x0.th).length,
+                  wh = queueWhen(qid),
+                  last = q0.items
+                    .filter((x0) => !x0.th)
+                    .map((x0) => wh[x0.id])
+                    .pop();
+                return `<button class="link" data-a="lg-queue" data-v="${O(qid)}">${O(q0.title)}: ${dn} из ${q0.items.length}${last ? " · закончишь " + O(F(M(last), { day: "numeric", month: "short" })) : ""}</button>`;
+              })
+              .filter(Boolean),
+            kline = ks
+              .map((kid) => st2.kits.find((x0) => x0.id === kid))
+              .filter(Boolean)
+              .map((k0) => `<button class="link" data-a="kits-open">${O(k0.title)}</button>`);
+          return {
+            mins,
+            html: `<section class="card lg-card" style="--c:${c0.color}">
+      <div class="lg-h"><i class="dot"></i><b>${O(c0.name)}</b><span class="mono small muted" ${ab.a !== ab.b ? 'title="неделя А / неделя Б"' : ""}>${mins ? abText(ab) + (ab.a !== ab.b ? " · А/Б" : " в неделю") : "нет в расписании"}</span></div>
+      ${L.length ? `<div class="lg-slots mono small">${O(slotText(L))}</div>` : `<div class="lg-slots muted small">Только таймер. Добавь время — и доп встанет в расписание.</div>`}
+      <div class="lg-tags">${tags.map((x0) => `<span class="tag">${O(x0)}</span>`).join("")}</div>
+      ${qline.length || kline.length ? `<div class="lg-in small">Внутри: ${qline.concat(kline).join(", ")}</div>` : ""}
+      ${goalGap(ab, gm) ? `<div class="lg-warn small">${O(goalGap(ab, gm))}</div>` : ""}
+      <div class="btn-row"><button class="btn small" data-a="lego-open" data-v="${O(c0.id)}">Изменить</button></div></section>`,
+          };
+        })
+        .sort((x0, y0) => y0.mins - x0.mins),
+      proj = st2.projects.filter((p0) => !p0.done),
+      planned = (pid) =>
+        Object.keys(U.days)
+          .filter((k0) => k0 >= today && U.days[k0] && Array.isArray(U.days[k0].plan))
+          .sort()
+          .flatMap((k0) => U.days[k0].plan.filter((b) => b && b.pid === pid).map((b) => `${dayShort(k0)} ${b.start}`));
+    return `<section class="pagehead">${backLink()}<h1 class="display">Конструктор</h1><p class="muted">Каждый доп собран из кирпичиков: когда он в неделе, что внутри (уроки по порядку или программа), как засчитывать и сколько часов цель. Поменял здесь — поменялось везде: в расписании, привычках, таймере и плане для печати.</p></section>
+    <section class="card"><div class="card-h"><h2>Собрать новый доп</h2></div><div class="lg-presets">${LEGO_PRESETS.map(
+      ([pid, n0, d0]) => `<button class="lg-preset" data-a="lego-new" data-v="${pid}"><b>${O(n0)}</b><span class="muted small">${O(d0)}</span></button>`,
+    ).join("")}</div>
+    <p class="hint">${
+      fw.list.length
+        ? `Свободно в шаблоне недели: ${fw.ab.a === fw.ab.b ? A(fw.ab.a) : `${A(fw.ab.a)} в неделю А, ${A(fw.ab.b)} в неделю Б`}. Окна: ${fw.list
+            .map((x0) => `${u[x0.d]}${x0.b.wk ? " (" + wkName(x0.b.wk) + ")" : ""} ${x0.b.start}–${mh(hm(x0.b.start) + x0.b.dur)}${"debt" === x0.b.cat ? " (окно долгов)" : ""}`)
+            .join(", ")}. Новый доп сам встанет в свободное окно — время потом меняешь как хочешь.`
+        : "Свободных окон в шаблоне недели нет: новый доп потеснит отдых или другое дело — честно покажу, что именно."
+    }</p></section>
+    <h2 class="sec-h">Допы</h2>
+    ${cards.map((x0) => x0.html).join("")}
+    <h2 class="sec-h">Задачи со сроком</h2>
+    ${
+      proj.length
+        ? proj
+            .map((p0) => {
+              const c = p0.cat ? s(p0.cat) : null,
+                n0 = p0.steps.length,
+                k0 = p0.steps.filter((x0) => x0.done).length,
+                pl = planned(p0.id);
+              return `<section class="card lg-card" style="--c:${c ? c.color : "var(--accent)"}"><div class="lg-h"><i class="dot"></i><b>${O(p0.title)}</b><span class="mono small muted">${n0 ? `${k0}/${n0}` : ""}</span></div>
+      <div class="muted small">${O(projDueText(p0))}${pl.length ? " · в расписании: " + O(pl.join(", ")) : ""}</div>
+      <div class="btn-row"><button class="btn small primary" data-a="proj-place" data-id="${O(p0.id)}">Поставить в расписание</button><button class="btn small" data-a="proj-edit" data-id="${O(p0.id)}">Изменить</button></div></section>`;
+            })
+            .join("")
+        : `<p class="hint">Задача — разовое дело со сроком и шагами: презентация к пятнице, доклад, подготовка к олимпиаде. Не привычка: сделал — и она уходит.</p>`
+    }
+    <div class="btn-row"><button class="btn" data-a="proj-new">+ Задача со сроком</button><button class="btn" data-a="go-sched">Расписание недели</button></div>
+    ${
+      arch.length
+        ? `<h2 class="sec-h">Архив</h2><div class="chips">${arch
+            .map((c0) => `<button class="chip" data-a="lego-open" data-v="${O(c0.id)}"><i class="dot" style="background:${c0.color}"></i> ${O(c0.name)}</button>`)
+            .join("")}</div><p class="hint">Убранные допы. Записи времени сохранились — нажми, чтобы вернуть.</p>`
+        : ""
+    }`;
+  }
+  function legoModal() {
+    const dr = tt.legoDraft,
+      st2 = bt(),
+      today = j(),
+      dayOpts = (v0) => u.map((n0, i0) => `<option value="${i0}" ${+v0 === i0 ? "selected" : ""}>${O(n0[0].toUpperCase() + n0.slice(1))}</option>`).join(""),
+      wkOpts = (v0) =>
+        `<option value="" ${v0 ? "" : "selected"}>каждую</option><option value="a" ${"a" === v0 ? "selected" : ""}>неделя А</option><option value="b" ${"b" === v0 ? "selected" : ""}>неделя Б</option>`,
+      qOpts = (v0, pre) => st2.queues.map((q0) => `<option value="q:${O(q0.id)}" ${v0 === "q:" + q0.id ? "selected" : ""}>${pre}уроки: ${O(q0.title)}</option>`).join(""),
+      kOpts = (v0, pre) => st2.kits.map((k0) => `<option value="k:${O(k0.id)}" ${v0 === "k:" + k0.id ? "selected" : ""}>${pre}программа: ${O(k0.title)}</option>`).join(""),
+      linkOpts = (v0) =>
+        `<option value="auto" ${"auto" === v0 ? "selected" : ""}>внутри: как у допа</option><option value="" ${"" === v0 ? "selected" : ""}>внутри: ничего</option>${qOpts(v0, "")}${kOpts(v0, "")}`,
+      ctOpts = `<option value="" ${dr.ctype ? "" : "selected"}>ничего — просто время</option>${qOpts(dr.ctype, "")}${kOpts(dr.ctype, "")}<option value="newq" ${"newq" === dr.ctype ? "selected" : ""}>+ новые уроки по порядку</option><option value="newk" ${"newk" === dr.ctype ? "selected" : ""}>+ новая программа (чек-лист)</option>`,
+      ab = abMin(dr.slots.map((x0) => ({ dur: +x0.dur || 0, wk: x0.wk }))),
+      gm = Math.round(60 * (parseFloat(String(dr.goal || "").replace(",", ".")) || 0)),
+      ownK = Object.keys(U.days)
+        .filter((k0) => k0 >= today && U.days[k0] && Array.isArray(U.days[k0].plan))
+        .sort(),
+      cq = /^q:/.test(dr.ctype) ? st2.queues.find((q0) => "q:" + q0.id === dr.ctype) : null,
+      newC = "newq" === dr.ctype || "newk" === dr.ctype,
+      cf = tt.confirm === "lgdel:" + dr.id;
+    return `<div class="modal-back" data-a="lego-close-bg"><div class="modal wide-modal" role="dialog" aria-modal="true" aria-labelledby="lg-h">
+    <div class="modal-h"><h2 id="lg-h" class="display">${dr.isNew ? "Новый доп" : dr.archived ? "Вернуть доп" : "Доп"}</h2><button class="icon-btn" data-a="lego-close" aria-label="Закрыть">×</button></div>
+    <div class="lg-name"><button class="cat-sw" style="background:${dr.color}" data-a="lego-color" aria-label="Сменить цвет" title="Сменить цвет"></button><input id="lg-name" data-input="lego-name" value="${O(dr.name)}" placeholder="${O(dr.ph || "Название допа")}" aria-label="Название допа" autocomplete="off"></div>
+    <h3>Когда</h3>
+    <p class="hint top0">Время в шаблоне недели, шаг 15 минут. «Неделя А/Б» — если через неделю (сейчас неделя ${wkName(weekLetter(today))}). Без времени доп остаётся только в таймере.</p>
+    <div class="ls-list">${dr.slots
+      .map((sl, i0) => {
+        const cl = slotClash(dr, i0);
+        return `<div class="ls-row">
+      <select id="ls-d-${i0}" data-input="ls-d" data-i="${i0}" aria-label="День">${dayOpts(sl.d)}</select>
+      <select id="ls-s-${i0}" class="mono" data-input="ls-start" data-i="${i0}" aria-label="Начало">${timeOpts(sl.start)}</select>
+      <select id="ls-u-${i0}" class="mono" data-input="ls-dur" data-i="${i0}" aria-label="Сколько">${durOpts(sl.dur)}</select>
+      <select id="ls-w-${i0}" data-input="ls-wk" data-i="${i0}" aria-label="Какие недели">${wkOpts(sl.wk)}</select>
+      <button class="x" data-a="ls-del" data-i="${i0}" aria-label="Убрать это время">×</button>
+      <input id="ls-t-${i0}" class="ls-title" data-input="ls-title" data-i="${i0}" value="${O(sl.title)}" placeholder="${O((dr.name || "").trim() || "Как называется дело")}" aria-label="Как называется дело" autocomplete="off">
+      <select id="ls-l-${i0}" class="ls-link" data-input="ls-link" data-i="${i0}" aria-label="Что внутри дела">${linkOpts(sl.link)}</select>
+      <button class="pin-t ${sl.fixed ? "on" : ""}" data-a="ls-pin" data-i="${i0}" aria-pressed="${!!sl.fixed}" title="Встреча: время не сдвигается">${w.pin}<span>встреча</span></button>
+      ${
+        cl.hard.length
+          ? `<div class="ls-warn">Пересекается: ${O(cl.hard.join("; "))}. <button class="link" data-a="ls-find" data-i="${i0}">Найти место</button></div>`
+          : cl.soft.length
+            ? `<div class="ls-note">Займёт время: ${O(cl.soft.join(", "))} — сожмётся.</div>`
+            : ""
+      }${cl.late ? `<div class="ls-warn">Заканчивается позже времени сна.</div>` : ""}
+    </div>`;
+      })
+      .join("")}</div>
+    <div class="btn-row ls-foot"><button class="btn small" data-a="ls-add">+ Время</button><span class="muted small">${
+      ab.a || ab.b ? (goalGap(ab, gm) ? O(goalGap(ab, gm)) : `В неделю: ${abText(ab)}${ab.a !== ab.b ? " (А/Б)" : ""}${gm ? ` · цель ${A(gm)}` : ""}`) : ""
+    }</span></div>
+    <h3>Что внутри</h3>
+    <select id="lg-ct" data-input="lego-ctype" aria-label="Что внутри допа">${ctOpts}</select>
+    ${
+      cq
+        ? `<p class="hint">Уроки идут по порядку: в каждое время допа — следующий непройденный. Пройдено ${cq.items.filter((x0) => x0.th).length} из ${cq.items.length}. Список уроков — кнопка в карточке допа.</p>`
+        : /^k:/.test(dr.ctype)
+          ? `<p class="hint">Программа открывается в деле галочками. Правка пунктов — здесь, для всех дел с этой программой.</p>`
+          : ""
+    }
+    ${newC ? `<label class="pj-l">Название<input id="lg-ctitle" data-input="lego-ctitle" value="${O(dr.ctitle)}" placeholder="${O(((dr.name || "").trim() || "Доп") + ("newq" === dr.ctype ? " · уроки" : ""))}" autocomplete="off"></label>` : ""}
+    ${
+      newC || /^k:/.test(dr.ctype)
+        ? `<label class="pj-l">${"newq" === dr.ctype ? "Уроки — по одному на строку; практикум — через «|»" : "Пункты — по одному на строку"}<textarea id="lg-ctext" rows="5" data-input="lego-ctext" placeholder="${"newq" === dr.ctype ? "1. Введение | задачи 1–5&#10;2. Следующая тема" : "Разминка 10 мин&#10;Присед 3×10"}">${O(dr.ctext)}</textarea></label>`
+        : ""
+    }
+    <h3>Как засчитывать</h3>
+    <div class="seg lg-seg" role="group" aria-label="Как засчитывать"><button class="${"res" === dr.mode ? "on" : ""}" data-a="lego-mode" data-v="res" aria-pressed="${"res" === dr.mode}">По результату</button><button class="${"res" !== dr.mode ? "on" : ""}" data-a="lego-mode" data-v="time" aria-pressed="${"res" !== dr.mode}">По времени</button></div>
+    <p class="hint">${"res" === dr.mode ? "Сделал — засчитано, даже если быстрее. Освободившееся время — твоё." : "Засчитывается, когда отсидел минуты дела: таймер отметит сам."}</p>
+    <div class="chips"><button class="chip ${dr.habit ? "on" : ""}" data-a="lego-habit" aria-pressed="${!!dr.habit}">${dr.habit ? "✓ " : ""}Привычка на главной</button><button class="chip ${dr.debt ? "on" : ""}" data-a="lego-debt" aria-pressed="${!!dr.debt}">${dr.debt ? "✓ " : ""}Пропущенное — в долг недели</button></div>
+    <p class="hint">${dr.debt ? "Не сделал — время уйдёт в «долг недели», его можно закрыть в окне долгов." : "Пропуск не копится в долг: например, тренировку не догоняют за столом."}</p>
+    ${
+      dr.habit
+        ? `<label class="pj-l">Привычка — сколько дел допа в дне, столько отметок<input id="lg-hname" data-input="lego-hname" value="${O(dr.habitName)}" placeholder="${O((dr.name || "").trim() || "Название привычки")}" autocomplete="off"></label>`
+        : ""
+    }
+    <label class="pj-l">Цель на неделю, часов<input id="lg-goal" class="mono" type="text" inputmode="decimal" maxlength="4" data-input="lego-goal" value="${O(dr.goal)}" placeholder="0 — без цели"></label>
+    <h3>Материалы</h3>
+    <textarea id="lg-notes" rows="3" data-input="lego-notes" placeholder="Где учебник, ссылка на курс, в каком чате учитель">${O(dr.notes)}</textarea>
+    ${ownK.length ? `<p class="hint">Дни, изменённые отдельно (${O(ownK.slice(0, 5).map(dayShort).join(", "))}${ownK.length > 5 ? " и ещё " + (ownK.length - 5) : ""}), остаются как были — их правь через «Изменить только этот день».</p>` : ""}
+    <div class="modal-f">${
+      dr.isNew || dr.archived ? "" : `<button class="btn ghost danger-t" data-a="lego-del">${cf ? "Нажми ещё раз — убрать" : "Убрать доп"}</button>`
+    }<button class="btn ghost" data-a="lego-close">Отмена</button><button class="btn primary" data-a="lego-save">${dr.isNew ? "Собрать" : dr.archived ? "Вернуть" : "Сохранить"}</button></div>
+  </div></div>`;
+  }
+  // Задача со сроком → дело на конкретный день (шаблон недели не меняется)
+  function placeOpen(pid) {
+    const p0 = bt().projects.find((x0) => x0.id === pid);
+    if (!p0) return;
+    const nm = nowMin(),
+      k0 = nm < 1230 ? j() : j(D(new Date(), 1)),
+      nx = p0.steps.find((x0) => !x0.done),
+      dr = { pid, key: k0, start: "17:00", dur: 45, title: `${p0.title}${nx ? " · " + nx.t : ""}` };
+    placeFind(dr, k0 === j() ? 15 * Math.ceil(nm / 15) : 0, !0);
+    ((tt.placeDraft = dr), (tt.placeOpen = !0), (tt.settingsOpen = !1), $a());
+  }
+  function placeFind(dr, pref, quiet) {
+    const s0 = freeStart(dayPlanOf(dr.key), E(M(dr.key)), null, +dr.dur || 45, pref);
+    null != s0 ? (dr.start = mh(s0)) : quiet || Ea("Свободного места в этот день нет — выбери время сам, отдых под делом сожмётся");
+    return null != s0;
+  }
+  function placeModal() {
+    const dr = tt.placeDraft,
+      p0 = bt().projects.find((x0) => x0.id === dr.pid);
+    if (!p0) return "";
+    const days = [];
+    for (let i0 = 0; i0 < 10; i0++) days.push(j(D(new Date(), i0)));
+    const s0 = hm(dr.start),
+      e0 = s0 + (+dr.dur || 0),
+      L = dayPlanOf(dr.key).filter((b) => !isFreeBlk(b) && hm(b.start) < e0 && s0 < hm(b.start) + b.dur),
+      hard = L.filter((b) => b.cat || b.fixed),
+      soft = [...new Set(L.filter((b) => !b.cat && !b.fixed).map((b) => b.title))];
+    return `<div class="modal-back" data-a="place-close-bg"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="pl-h">
+    <div class="modal-h"><h2 id="pl-h" class="display">В расписание</h2><button class="icon-btn" data-a="place-close" aria-label="Закрыть">×</button></div>
+    <p class="hint top0">${O(p0.title)}${p0.due ? " · " + O(projDueText(p0)) : ""}. Дело встанет только в этот день — шаблон недели не меняется.</p>
+    <label class="pj-l">Что делать<input id="pl-title" data-input="pl-title" value="${O(dr.title)}" autocomplete="off"></label>
+    <h3>День</h3><div class="chips">${days
+      .map((k0) => `<button class="chip ${k0 === dr.key ? "on" : ""}" data-a="pl-day" data-v="${k0}" aria-pressed="${k0 === dr.key}">${O(dayShort(k0))}</button>`)
+      .join("")}</div>
+    <div class="sc-times"><label>Начало<select id="pl-start" class="mono" data-input="pl-start">${timeOpts(dr.start)}</select></label><label>Сколько<select id="pl-dur" class="mono" data-input="pl-dur">${durOpts(dr.dur)}</select></label></div>
+    ${
+      hard.length
+        ? `<p class="hint bad-t">Пересекается: ${O(hard.map((b) => `${b.title} ${b.start}`).join(", "))}. <button class="link" data-a="pl-find">Найти свободное место</button></p>`
+        : `<p class="hint">Встанет ${mh(s0)}–${mh(e0)}${soft.length ? `, займёт время: ${O(soft.join(", "))} — сожмётся` : ""}.</p>`
+    }
+    <div class="modal-f"><button class="btn ghost" data-a="place-close">Отмена</button><button class="btn primary" data-a="place-save">Поставить</button></div></div></div>`;
+  }
+  function placeSave() {
+    const dr = tt.placeDraft,
+      s0 = parseT(dr.start),
+      p0 = bt().projects.find((x0) => x0.id === dr.pid);
+    if (null == s0 || !p0) return;
+    const undo = snapOf([dr.key]),
+      plan = dayPlanOf(dr.key),
+      blk = { id: "pj" + T(), start: mh(s0), dur: +dr.dur || 45, title: (dr.title || "").trim() || p0.title, cat: p0.cat || "other", mode: "time", fixed: !1, pid: p0.id };
+    tt.placeOpen = !1;
+    Tt(dr.key, (d) => {
+      d.plan = putIntoT(plan, blk);
+    });
+    Ea(`В расписании: ${dayShort(dr.key)}, ${mh(s0)}–${mh(s0 + blk.dur)}`, undo);
+  }
   const pa = {
+      lego: legoView,
       queue: queueView,
       kits: kitsView,
       today: function () {
@@ -2700,9 +3391,9 @@
           o = U.days[e] || ft(e),
           i = n.habits.filter((t) => hT(t, e) > 0),
           bad = !!o.bad,
-          r = bad ? n.minimum.length : i.reduce((t, a) => t + hT(a, e), 0),
+          r = bad ? minFor(e).length : i.reduce((t, a) => t + hT(a, e), 0),
           c = bad
-            ? n.minimum.filter((m) => o.min && o.min[m.id]).length
+            ? minFor(e).filter((m) => o.min && o.min[m.id]).length
             : i.reduce((t, a) => t + Math.min((o.habits && o.habits[a.id]) || 0, hT(a, e)), 0),
           d = r ? c / r : 0,
           u = gt(),
@@ -3393,7 +4084,7 @@
         }));
   }
   function $a() {
-    qMemo = null;
+    ((qMemo = null), (piMemo = {}));
     ha = !1;
     maybeMigrate();
     bt();
@@ -3453,6 +4144,8 @@
         tt.catsOpen && tt.catsDraft && (p += na(catsModal)),
         tt.schedOpen && tt.schedDraft && (p += na(schedModal)),
         tt.projOpen && tt.projDraft && (p += na(projModal)),
+        tt.legoOpen && tt.legoDraft && (p += na(legoModal)),
+        tt.placeOpen && tt.placeDraft && (p += na(placeModal)),
         tt.focus && c && (p += na(focusOverlay)));
     } else p += '<p class="loading">Загружаю твои данные…</p>';
     (ba.classList.toggle("wide", "hw" === Z && d),
@@ -3628,14 +4321,29 @@
       }
     }
   }, 1e3);
-  let Da = null;
-  function Ea(t) {
+  let Da = null,
+    undoFn = null;
+  function Ea(t, undo) {
     const a = k("toast");
-    a &&
-      ((a.textContent = t),
-      a.classList.add("show"),
-      clearTimeout(Da),
-      (Da = setTimeout(() => a.classList.remove("show"), 3e3)));
+    if (!a) return;
+    undoFn = undo || null;
+    a.textContent = t;
+    if (undo) {
+      const b0 = document.createElement("button");
+      ((b0.className = "toast-undo"), b0.setAttribute("data-a", "undo"), (b0.textContent = "Отменить"), a.appendChild(b0));
+    }
+    (a.classList.add("show"), clearTimeout(Da), (Da = setTimeout(() => (a.classList.remove("show"), (undoFn = null)), undo ? 7e3 : 3e3)));
+  }
+  // Снимок дней и настроек до изменения — чтобы «Отменить» вернул всё как было
+  function snapOf(keys, withSettings) {
+    const sn = { days: {}, settings: withSettings ? N(U.profile && U.profile.settings) : null };
+    (keys || []).forEach((k0) => (sn.days[k0] = U.days[k0] ? N(U.days[k0]) : null));
+    return () => {
+      Object.entries(sn.days).forEach(([k0, v0]) => (v0 ? At("days", k0, v0, !1) : U.days[k0] && St("days", k0, !1)));
+      sn.settings && Lt({ settings: sn.settings }, !1);
+      $a();
+      Ea("Отменено");
+    };
   }
   function Oa(t) {
     return (
@@ -3778,7 +4486,7 @@
   // План дня для правки: свой план даты или копия шаблона дня недели
   function dayPlanOf(key) {
     const dd = U.days[key];
-    return N(dd && Array.isArray(dd.plan) ? normBlocks(dd.plan) : bt().sched["d" + E(M(key))]) || [];
+    return N(dd && Array.isArray(dd.plan) ? normBlocks(dd.plan) : tplFor(key)) || [];
   }
   const parseT = (v0) => {
     const m0 = String(v0 || "").trim().match(/^(\d{1,2})[:.\s]?(\d{2})$/);
@@ -3787,7 +4495,7 @@
   // Первое место длиной dur: с желаемого времени, потом с начала дня; не позже сна
   function findSlot(plan, dur, pref, key) {
     const st2 = bt(),
-      sleep = hm(st2.times.sleep),
+      sleep = sleepMin(st2, E(M(key))),
       busy = plan.filter((b) => !isFreeBlk(b)).map((b) => [hm(b.start), hm(b.start) + b.dur]),
       first = plan.length ? Math.min(...plan.map((b) => hm(b.start))) : hm(st2.times.wake[E(M(key))]),
       fits = (s0) => s0 + dur <= sleep && !busy.some(([a0, e0]) => a0 < s0 + dur && s0 < e0);
@@ -3815,7 +4523,8 @@
   const dayShort = (key) => (key === j() ? "сегодня" : F(M(key), { weekday: "short", day: "numeric", month: "short" }));
   // Перенести дело на другой день (at — минуты от полуночи или null: найти свободное место)
   function moveBlock(fromKey, id, toKey, at) {
-    const src = dayPlanOf(fromKey),
+    const undo = snapOf([fromKey, toKey]),
+      src = dayPlanOf(fromKey),
       ix = src.findIndex((b) => b.id === id);
     if (ix < 0) return void Ea("Это дело нельзя перенести: оно появилось само из события");
     const blk = src.splice(ix, 1)[0];
@@ -3824,7 +4533,7 @@
       Tt(fromKey, (d) => {
         d.plan = putInto(src, blk, s0);
       });
-      return void Ea(`${blk.title}: теперь в ${mh(s0)}`);
+      return void Ea(`${blk.title}: теперь в ${mh(s0)}`, undo);
     }
     const dst = dayPlanOf(toKey),
       s0 = null == at ? findSlot(dst, blk.dur, hm(blk.start), toKey) : at;
@@ -3834,12 +4543,13 @@
     Tt(toKey, (d) => {
       d.plan = putInto(dst, Object.assign({}, blk, { id: "m" + T() }), s0);
     });
-    Ea(`Перенесено: ${blk.title} → ${dayShort(toKey)}, ${mh(s0)}`);
+    Ea(`Перенесено: ${blk.title} → ${dayShort(toKey)}, ${mh(s0)}`, undo);
   }
   // Поменять два дела местами (в одном дне или в разных)
   function swapBlocks(kA, idA, kB, idB) {
     if (kA === kB && idA === idB) return;
-    const pA = dayPlanOf(kA),
+    const undo = snapOf([kA, kB]),
+      pA = dayPlanOf(kA),
       pB = kA === kB ? pA : dayPlanOf(kB),
       a = pA.find((b) => b.id === idA),
       b = pB.find((x0) => x0.id === idB);
@@ -3870,7 +4580,7 @@
         d.plan = normBlocks(pB);
       });
     }
-    Ea(`Поменял местами: ${a.title} и ${b.title}`);
+    Ea(`Поменял местами: ${a.title} и ${b.title}`, undo);
   }
   // ---------- Действия с блоками расписания ----------
   function blkStart(key, id) {
@@ -3884,7 +4594,8 @@
   function blkDone(key, id) {
     const tm = ht(),
       it = planItems(key).list.find((x0) => x0.id === id),
-      qm = it && it.queue ? queueMap()[key + "|" + id] : null;
+      qm = it && it.queue ? queueMap()[key + "|" + id] : null,
+      undo = snapOf([key], !!qm);
     qm &&
       !qm.x.th &&
       qUpdate((qs) => {
@@ -3905,8 +4616,25 @@
       const freed = it.s + it.dur - nowMin();
       freed >= 5 && (tt.early = { key, id, until: it.s + it.dur, title: it.title });
     }
-    Ea(it ? `Сделано: ${it.title}` : "Сделано");
+    Ea(it ? `Сделано: ${it.title}` : "Сделано", undo);
     $a();
+  }
+  // Снять отметки «сделано» с дел темы за день (и уроки, отмеченные ими, снова не пройдены)
+  function catReset(key, cat) {
+    const L = planItems(key).list.filter((b) => "block" === b.kind && b.cat === cat),
+      bl = (U.days[key] || {}).blocks || {},
+      qis = L.map((b) => bl[b.id] && bl[b.id].qi).filter(Boolean),
+      hb = habitOfCat(cat),
+      undo = snapOf([key], qis.length > 0);
+    qis.length && qUpdate((qs) => (qs.forEach((q0) => q0.items.forEach((x0) => qis.includes(x0.id) && (x0.th = !1))), qs), !0);
+    Tt(key, (d) => {
+      hb && ((d.habits = d.habits || {}), (d.habits[hb.id] = 0));
+      L.forEach((b) => {
+        const o0 = d.blocks && d.blocks[b.id];
+        o0 && "done" === o0.st && (delete o0.st, delete o0.at, delete o0.qi);
+      });
+    });
+    Ea("Отметки сняты", undo);
   }
   function blkExt(key, id) {
     Tt(key, (d) => {
@@ -3954,6 +4682,8 @@
           fixed: !!b0.fixed,
           kit: b0.kit || null,
           queue: b0.queue || null,
+          wk: dr.key ? null : b0.wk || null,
+          pid: b0.pid || null,
         }))
         .sort((x0, y0) => hm(x0.start) - hm(y0.start)),
       sched = N(st2.sched),
@@ -3964,7 +4694,8 @@
       // План только на эту дату: шаблон не трогаем. Дела с «Перенести на…» уезжают в свои дни.
       const movers = dr.blocks.filter((b0) => b0.moveTo && b0.moveTo !== dr.key && okT(b0.start)),
         moved = new Set(movers.map((b0) => b0.id)),
-        notes = [];
+        notes = [],
+        undo = snapOf([dr.key].concat(movers.map((b0) => b0.moveTo)));
       tt.schedOpen = !1;
       Tt(dr.key, (d) => {
         d.plan = clean.filter((b0) => !moved.has(b0.id));
@@ -3982,6 +4713,7 @@
         notes.length
           ? "Перенесено: " + notes.join("; ")
           : `Сохранено только на ${dr.key === j() ? "сегодня" : F(M(dr.key), { day: "numeric", month: "long" })}`,
+        undo,
       );
       return;
     }
@@ -3991,10 +4723,12 @@
       okT(dr.wake) && (times.wake[d0] = fixT(dr.wake));
     });
     okT(dr.wake) && (times.wake[dr.d] = fixT(dr.wake));
-    okT(dr.sleep) && (times.sleep = fixT(dr.sleep));
+    okT(dr.sleep) && ((times.sleepD = (times.sleepD || [0, 1, 2, 3, 4, 5, 6].map(() => times.sleep)).slice()), (times.sleepD[dr.d] = fixT(dr.sleep)));
+    okT(dr.wake) && ((times.wake = times.wake.slice()), (times.wake[dr.d] = fixT(dr.wake)));
     tt.schedOpen = !1;
+    const undo = snapOf([], !0);
     Lt({ settings: Object.assign({}, N(st2), { sched, times }) });
-    Ea(dr.copyTo.length ? `Сохранено и скопировано: ${dr.copyTo.length} ${C(dr.copyTo.length, "день", "дня", "дней")}` : "Расписание сохранено");
+    Ea(dr.copyTo.length ? `Сохранено и скопировано: ${dr.copyTo.length} ${C(dr.copyTo.length, "день", "дня", "дней")}` : "Шаблон сохранён", undo);
   }
   function projUpdate(fn, quiet) {
     const st2 = bt();
@@ -4042,6 +4776,10 @@
         color: c0.color,
         goal: Math.min(80, Math.max(0, Math.round(2 * g0) / 2)),
         archived: !!c0.archived,
+        content: c0.content || null,
+        mode: c0.mode || null,
+        notes: c0.notes || "",
+        nodebt: !!c0.nodebt,
       };
     });
     if (!cats.some((c0) => !c0.archived)) return void Ea("Нужна хотя бы одна активная тема");
@@ -4066,6 +4804,7 @@
     }
   }
   (document.addEventListener("click", (a) => {
+    tt.lastClickY = a.clientY;
     !(function () {
       try {
         if (!ya) {
@@ -4076,7 +4815,7 @@
       } catch (t) {}
     })();
     const e = a.target.closest("[data-a]");
-    if (!e || !ba.contains(e) || e.disabled) return;
+    if (!e || !(ba.contains(e) || e.closest("#toast")) || e.disabled) return;
     const s = e.dataset.a,
       n = e.dataset.v,
       i = e.dataset.id;
@@ -4154,7 +4893,11 @@
             !(function (t) {
               const a = bt().habits.find((a) => a.id === t);
               if (!a) return;
-              const e = hT(a, j()) || 1;
+              const e = hT(a, j()) || 1,
+                cur0 = ((U.days[j()] || {}).habits || {})[t] || 0,
+                nb = a.cat && cur0 < e ? planItems(j()).list.find((b) => "block" === b.kind && b.cat === a.cat && !b.status && b.dur > 0) : null;
+              if (nb) return void blkDone(j(), nb.id);
+              if (a.cat && cur0 >= e) return void catReset(j(), a.cat);
               Tt(j(), (a) => {
                 const s = a.habits[t] || 0;
                 a.habits[t] = s >= e ? 0 : s + 1;
@@ -4400,9 +5143,10 @@
                   id: t.id || T(),
                   name: (t.name || "").trim() || "Без названия",
                   t: [0, 1, 2, 3, 4, 5, 6].map((a) => B(t.t[a], 0, 9)),
+                  cat: t.cat || null,
                 })),
                 s = [0, 1, 2, 3, 4, 5, 6].map((t) => B(a.gameLimit[t], 0, 1440)),
-                mn = a.minimum.map((m0, i0) => ({ id: m0.id || "m" + i0, name: (m0.name || "").trim() })).filter((m0) => m0.name),
+                mn = a.minimum.map((m0, i0) => ({ id: m0.id || "m" + i0, name: (m0.name || "").trim(), cat: m0.cat || null })).filter((m0) => m0.name),
                 rw = { on: !!a.reward.on, min: B(a.reward.min, 0, 240), pct: B(a.reward.pct, 50, 100) };
               ((tt.settingsOpen = !1),
                 Lt({
@@ -4528,7 +5272,7 @@
           case "sched-edit": {
             const d0 = Number(n),
               st2 = bt();
-            ((tt.schedDraft = { d: d0, blocks: N(st2.sched["d" + d0]), wake: st2.times.wake[d0], sleep: st2.times.sleep, copyTo: [] }),
+            ((tt.schedDraft = { d: d0, blocks: N(st2.sched["d" + d0]), wake: st2.times.wake[d0], sleep: st2.times.sleepD[d0], copyTo: [] }),
               (tt.schedOpen = !0),
               $a());
             break;
@@ -4566,9 +5310,9 @@
             ((tt.schedDraft = {
               key,
               d: d0,
-              blocks: N(dd0 && Array.isArray(dd0.plan) ? normBlocks(dd0.plan) : st2.sched["d" + d0]),
+              blocks: N(dd0 && Array.isArray(dd0.plan) ? normBlocks(dd0.plan) : tplFor(key)),
               wake: st2.times.wake[d0],
-              sleep: st2.times.sleep,
+              sleep: st2.times.sleepD[d0],
               copyTo: [],
             }),
               (tt.settingsOpen = !1),
@@ -4578,11 +5322,13 @@
           }
           case "sched-reset-day": {
             const key = e.dataset.key;
-            Oa("reset:" + key) &&
+            if (Oa("reset:" + key)) {
+              const undo = snapOf([key]);
               (Tt(key, (d) => {
                 delete d.plan;
               }),
-              Ea("Вернул как в шаблоне"));
+                Ea("Вернул как в шаблоне", undo));
+            }
             break;
           }
           case "sched-wk":
@@ -4677,12 +5423,108 @@
             Ea("Программы сохранены");
             break;
           }
+          case "lego-new":
+            ((tt.legoDraft = legoDraftNew(n)), (tt.legoOpen = !0), (tt.confirm = null), $a());
+            {
+              const el0 = k("lg-name");
+              el0 && el0.focus();
+            }
+            break;
+          case "lego-open": {
+            const d0 = legoDraftOf(n);
+            d0 && ((tt.legoDraft = d0), (tt.legoOpen = !0), (tt.confirm = null), (tt.settingsOpen = !1), $a());
+            break;
+          }
+          case "lego-close":
+          case "lego-close-bg":
+            ((tt.legoOpen = !1), $a());
+            break;
+          case "lego-save":
+            legoSave();
+            break;
+          case "lego-del":
+            Oa("lgdel:" + tt.legoDraft.id) ? legoDel(tt.legoDraft.id) : $a();
+            break;
+          case "lego-color": {
+            const ix = CAT_COLORS.indexOf(tt.legoDraft.color);
+            ((tt.legoDraft.color = CAT_COLORS[(ix + 1) % CAT_COLORS.length]), $a());
+            break;
+          }
+          case "lego-mode":
+            ((tt.legoDraft.mode = "res" === n ? "res" : "time"), $a());
+            break;
+          case "lego-habit":
+            ((tt.legoDraft.habit = !tt.legoDraft.habit), $a());
+            break;
+          case "lego-debt":
+            ((tt.legoDraft.debt = !tt.legoDraft.debt), $a());
+            break;
+          case "lego-go":
+            ((tt.settingsOpen = !1), Fa("lego"));
+            break;
+          case "ls-add":
+            (legoAddSlot(tt.legoDraft), $a());
+            break;
+          case "ls-del":
+            (tt.legoDraft.slots.splice(+e.dataset.i, 1), $a());
+            break;
+          case "ls-find":
+            (slotFind(tt.legoDraft, +e.dataset.i), $a());
+            break;
+          case "ls-pin": {
+            const sl = tt.legoDraft.slots[+e.dataset.i];
+            sl && ((sl.fixed = !sl.fixed), $a());
+            break;
+          }
+          case "lg-queue":
+            ((tt.queueId = n), Fa("queue"));
+            break;
+          case "proj-place":
+            placeOpen(i);
+            break;
+          case "place-close":
+          case "place-close-bg":
+            ((tt.placeOpen = !1), $a());
+            break;
+          case "place-save":
+            placeSave();
+            break;
+          case "pl-day":
+            ((tt.placeDraft.key = n), placeFind(tt.placeDraft, n === j() ? 15 * Math.ceil(nowMin() / 15) : hm(tt.placeDraft.start), !0), $a());
+            break;
+          case "pl-find":
+            (placeFind(tt.placeDraft, 0), $a());
+            break;
+          case "undo":
+            if (undoFn) {
+              const f0 = undoFn;
+              ((undoFn = null), k("toast") && k("toast").classList.remove("show"), f0());
+            }
+            break;
           case "sched-mode":
             ((tt.schedMode = "week" === n ? "week" : "day"), $a());
             break;
           case "wg-day":
             ((tt.schedDay = Number(n)), (tt.schedMode = "day"), $a());
             break;
+          case "wg-add": {
+            if (a.target.closest(".wg-school")) break;
+            const key = e.dataset.key,
+              dd0 = U.days[key],
+              st2 = bt(),
+              d0 = E(M(key)),
+              r0 = e.getBoundingClientRect(),
+              px = parseFloat(getComputedStyle(e).getPropertyValue("--px")) || 1.6,
+              at = Math.max(0, 15 * Math.floor((Number(e.dataset.t0) + (tt.lastClickY - r0.top) / px) / 15)),
+              blocks = N(dd0 && Array.isArray(dd0.plan) ? normBlocks(dd0.plan) : tplFor(key));
+            blocks.push({ id: T(), start: mh(at), dur: 60, title: "Новое дело", cat: null, mode: "time", fixed: !1, isNew: !0 });
+            blocks.sort((x0, y0) => hm(x0.start) - hm(y0.start));
+            ((tt.schedDraft = { key, d: d0, blocks, wake: st2.times.wake[d0], sleep: st2.times.sleepD[d0], copyTo: [] }), (tt.schedOpen = !0), $a());
+            const ni = blocks.findIndex((b) => b.isNew),
+              el0 = k("sb-title-" + ni);
+            el0 && (el0.focus(), el0.select());
+            break;
+          }
           case "wg-blk": {
             const key = e.dataset.key,
               dd0 = U.days[key],
@@ -4691,9 +5533,9 @@
             ((tt.schedDraft = {
               key,
               d: d0,
-              blocks: N(dd0 && Array.isArray(dd0.plan) ? normBlocks(dd0.plan) : st2.sched["d" + d0]),
+              blocks: N(dd0 && Array.isArray(dd0.plan) ? normBlocks(dd0.plan) : tplFor(key)),
               wake: st2.times.wake[d0],
-              sleep: st2.times.sleep,
+              sleep: st2.times.sleepD[d0],
               copyTo: [],
             }),
               (tt.schedOpen = !0),
@@ -4730,9 +5572,10 @@
             break;
           case "proj-del": {
             const id0 = tt.projDraft && tt.projDraft.id;
-            id0 &&
-              Oa("pdel:" + id0) &&
-              ((tt.projOpen = !1), projUpdate((ps) => ps.filter((x0) => x0.id !== id0)), Ea("Проект удалён"));
+            if (id0 && Oa("pdel:" + id0)) {
+              const undo = snapOf([], !0);
+              ((tt.projOpen = !1), projUpdate((ps) => ps.filter((x0) => x0.id !== id0)), Ea("Проект удалён", undo));
+            }
             break;
           }
           case "proj-step":
@@ -5017,9 +5860,19 @@
           case "sb-title":
             tt.schedDraft.blocks[+a.dataset.i].title = a.value;
             break;
-          case "sb-cat":
-            ((tt.schedDraft.blocks[+a.dataset.i].cat = a.value || null), $a());
+          case "sb-cat": {
+            // кирпичик темы: выбрал тему — дело само берёт её название, способ учёта и содержание (уроки, программу)
+            const b0 = tt.schedDraft.blocks[+a.dataset.i],
+              c0 = ALLCATS.find((x0) => x0.id === a.value);
+            b0.cat = a.value || null;
+            if (c0 && "debt" !== c0.id) {
+              (!b0.title || /^Новое дело/.test(b0.title)) && (b0.title = c0.name);
+              c0.mode && (b0.mode = c0.mode);
+              c0.content && !b0.queue && !b0.kit && ("queue" === c0.content.type ? (b0.queue = c0.content.id) : (b0.kit = c0.content.id));
+            }
+            $a();
             break;
+          }
           case "sb-mode":
             tt.schedDraft.blocks[+a.dataset.i].mode = a.value;
             break;
@@ -5028,6 +5881,57 @@
             break;
           case "sd-sleep":
             tt.schedDraft.sleep = a.value;
+            break;
+          case "lego-name":
+            tt.legoDraft && (tt.legoDraft.name = a.value);
+            break;
+          case "lego-goal":
+            tt.legoDraft && (tt.legoDraft.goal = a.value);
+            break;
+          case "lego-hname":
+            tt.legoDraft && (tt.legoDraft.habitName = a.value);
+            break;
+          case "lego-notes":
+            tt.legoDraft && (tt.legoDraft.notes = a.value);
+            break;
+          case "lego-ctitle":
+            tt.legoDraft && (tt.legoDraft.ctitle = a.value);
+            break;
+          case "lego-ctext":
+            tt.legoDraft && (tt.legoDraft.ctext = a.value);
+            break;
+          case "lego-ctype":
+            if (tt.legoDraft) {
+              const dr = tt.legoDraft,
+                was = dr.ctype,
+                kit0 = /^k:/.test(a.value) ? bt().kits.find((k0) => "k:" + k0.id === a.value) : null;
+              dr.ctype = a.value;
+              kit0 ? (dr.ctext = kit0.items.join("\n")) : ("newq" === a.value || "newk" === a.value) && ("newq" === was || "newk" === was) ? 0 : (dr.ctext = "");
+              $a();
+            }
+            break;
+          case "ls-d":
+          case "ls-start":
+          case "ls-dur":
+          case "ls-wk":
+          case "ls-title":
+          case "ls-link": {
+            const sl = tt.legoDraft && tt.legoDraft.slots[+a.dataset.i];
+            if (!sl) break;
+            const f0 = { "ls-d": "d", "ls-start": "start", "ls-dur": "dur", "ls-wk": "wk", "ls-title": "title", "ls-link": "link" }[e];
+            sl[f0] = "ls-d" === e || "ls-dur" === e ? +a.value : a.value;
+            "ls-title" !== e && "ls-link" !== e && $a();
+            break;
+          }
+          case "pl-title":
+            tt.placeDraft && (tt.placeDraft.title = a.value);
+            break;
+          case "pl-start":
+          case "pl-dur":
+            tt.placeDraft && ((tt.placeDraft["pl-start" === e ? "start" : "dur"] = "pl-dur" === e ? +a.value : a.value), $a());
+            break;
+          case "sb-wk":
+            tt.schedDraft && tt.schedDraft.blocks[+a.dataset.i] && (tt.schedDraft.blocks[+a.dataset.i].wk = a.value || null);
             break;
           case "sb-link": {
             const b0 = tt.schedDraft && tt.schedDraft.blocks[+a.dataset.i],
@@ -5088,6 +5992,9 @@
             t ? (t.innerHTML = ca()) : $a();
             break;
           }
+          case "set-h-cat":
+            tt.settingsDraft.habits[+a.dataset.i] && ((tt.settingsDraft.habits[+a.dataset.i].cat = a.value || null), $a());
+            break;
           case "set-h-name":
             tt.settingsDraft.habits[+a.dataset.i].name = a.value;
             break;
@@ -5120,6 +6027,10 @@
       "Escape" === t.key &&
         (tt.focus
           ? ((tt.focus = !1), $a())
+          : tt.placeOpen
+            ? ((tt.placeOpen = !1), $a())
+          : tt.legoOpen
+            ? ((tt.legoOpen = !1), $a())
           : tt.catsOpen
             ? ((tt.catsOpen = !1), $a())
             : tt.projOpen
